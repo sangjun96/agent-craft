@@ -57,3 +57,33 @@ test("generateObject passes content parts such as images through as the user mes
 
   expect(send.mock.lastCall?.[0].chatRequest.messages).toEqual([{ role: "user", content }]);
 });
+
+test("generateObject reports usage through onUsage", async () => {
+  send.mockResolvedValue({
+    choices: [{ message: { role: "assistant", content: '{"title":"Hi","tags":[]}' } }],
+    usage: { promptTokens: 900, completionTokens: 30, cost: 0.0002 },
+  });
+  const onUsage = vi.fn();
+
+  await createLlm({ apiKey: "key", onUsage }).generateObject("x", schema);
+
+  expect(onUsage).toHaveBeenCalledWith({ inputTokens: 900, outputTokens: 30, cost: 0.0002 });
+});
+
+test("generateObject adds the provider's charge to the cost when the key is BYOK", async () => {
+  send.mockResolvedValue({
+    choices: [{ message: { role: "assistant", content: '{"title":"Hi","tags":[]}' } }],
+    usage: {
+      promptTokens: 3,
+      completionTokens: 100,
+      cost: 0,
+      isByok: true,
+      costDetails: { upstreamInferenceCost: 0.00075 },
+    },
+  });
+  const onUsage = vi.fn();
+
+  await createLlm({ apiKey: "key", onUsage }).generateObject("x", schema);
+
+  expect(onUsage).toHaveBeenCalledWith({ inputTokens: 3, outputTokens: 100, cost: 0.00075 });
+});

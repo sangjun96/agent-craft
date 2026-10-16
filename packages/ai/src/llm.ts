@@ -4,7 +4,13 @@ import * as z from "zod";
 
 const MODEL = "google/gemini-3.8-flash";
 
-export function createLlm(options: { apiKey: string }) {
+export type LlmUsage = { inputTokens: number; outputTokens: number; cost?: number };
+
+export function createLlm(options: {
+  apiKey: string;
+  /** Called with token counts and cost after each successful request. */
+  onUsage?: (usage: LlmUsage) => void;
+}) {
   const client = new OpenRouter({ apiKey: options.apiKey });
 
   return {
@@ -25,6 +31,16 @@ export function createLlm(options: { apiKey: string }) {
           stream: false,
         },
       })) as ChatResult;
+      if (result.usage) {
+        options.onUsage?.({
+          inputTokens: result.usage.promptTokens,
+          outputTokens: result.usage.completionTokens,
+          // With BYOK OpenRouter bills only its own fee (often 0); the provider's charge is reported separately.
+          cost:
+            (result.usage.cost ?? 0) +
+            (result.usage.isByok ? (result.usage.costDetails?.upstreamInferenceCost ?? 0) : 0),
+        });
+      }
       const content = result.choices[0]?.message.content;
 
       if (typeof content !== "string") throw new Error("LLM returned no text content");
