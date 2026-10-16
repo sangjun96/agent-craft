@@ -314,7 +314,7 @@ function EditorSection() {
   return (
     <Section
       title="Editor"
-      description="editor 패키지(Tiptap). prose는 className으로 주입하고, CodeBlock · Markdown extension을 조합했습니다. 오른쪽은 같은 extension으로 그린 RichRenderer입니다."
+      description="editor 패키지(Tiptap). prose는 className으로 주입하고, CodeBlock · Markdown extension을 조합했습니다. 오른쪽은 같은 extension으로 그린 Preview입니다."
     >
       <Tiptap editor={editor}>
         <div className="grid gap-6 lg:grid-cols-2">
@@ -324,7 +324,7 @@ function EditorSection() {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>RichRenderer</CardTitle>
+              <CardTitle>Preview</CardTitle>
               <CardDescription>editor.getJSON()을 에디터 인스턴스 없이 렌더링</CardDescription>
             </CardHeader>
             <CardContent>
