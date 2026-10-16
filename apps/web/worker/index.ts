@@ -4,6 +4,7 @@ import { api } from "./api.ts";
 import type { Env } from "./env.ts";
 
 export { BboxAgent } from "./agents/bbox/bbox-agent.ts";
+export { CurriculumClassifierAgent } from "./agents/curriculum/curriculum-agent.ts";
 
 const app = new Hono<{ Bindings: Env }>();
 

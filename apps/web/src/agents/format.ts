@@ -14,3 +14,9 @@ export function formatCost(cost: number): string {
 export function formatTime(timestamp: number): string {
   return dateTime.format(timestamp);
 }
+
+export function formatDuration(ms: number): string {
+  if (ms < 60_000) return `${(ms / 1000).toFixed(1)}초`;
+  const seconds = Math.round(ms / 1000);
+  return `${Math.floor(seconds / 60)}분 ${seconds % 60}초`;
+}

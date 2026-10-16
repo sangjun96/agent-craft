@@ -47,6 +47,46 @@ export function parseCsvHeader(bytes: Uint8Array): string[] {
   return columns;
 }
 
+/** Parses every record (header included) into trimmed fields; blank lines are skipped. */
+export function parseCsvRecords(bytes: Uint8Array): string[][] {
+  let text: string;
+  try {
+    text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: false }).decode(bytes);
+  } catch {
+    throw new Error("UTF-8로 인코딩된 CSV만 사용할 수 있습니다");
+  }
+  const records: string[][] = [];
+  let record: string[] = [];
+  let field = "";
+  let quoted = false;
+  const endRecord = () => {
+    record.push(field.trim());
+    field = "";
+    if (record.some((value) => value !== "")) records.push(record);
+    record = [];
+  };
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i]!;
+    if (quoted) {
+      if (char !== '"') field += char;
+      else if (text[i + 1] === '"') field += text[i++];
+      else quoted = false;
+    } else if (char === '"') {
+      quoted = true;
+    } else if (char === ",") {
+      record.push(field.trim());
+      field = "";
+    } else if (char === "\n" || char === "\r") {
+      if (char === "\r" && text[i + 1] === "\n") i++;
+      endRecord();
+    } else {
+      field += char;
+    }
+  }
+  endRecord();
+  return records;
+}
+
 /** SHA-256 (hex) of the header's column names, in order. */
 export async function csvShapeHash(bytes: Uint8Array): Promise<string> {
   return hashColumns(parseCsvHeader(bytes));
@@ -60,7 +100,7 @@ export async function assertCsvShape(bytes: Uint8Array, expectedHash: string): P
   }
 }
 
-async function hashColumns(columns: string[]): Promise<string> {
+export async function hashColumns(columns: string[]): Promise<string> {
   const digest = await crypto.subtle.digest(
     "SHA-256",
     new TextEncoder().encode(JSON.stringify(columns)),
