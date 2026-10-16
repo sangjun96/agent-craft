@@ -6,5 +6,7 @@ export interface Env {
   CurriculumClassifierAgent: DurableObjectNamespace<CurriculumClassifierAgent>;
   DB: D1Database;
   OPENROUTER_API_KEY: string;
+  POLICY_AUD: string;
   RESOURCES: R2Bucket;
+  TEAM_DOMAIN: string;
 }

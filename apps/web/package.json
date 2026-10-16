@@ -8,6 +8,7 @@
     "build": "tsc -b && vp build",
     "preview": "vp build && vp preview",
     "deploy": "vp build && cf deploy --prebuilt",
+    "deploy:secrets": "vp build && cf deploy --prebuilt --secrets-file .dev.vars",
     "test": "vp test",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "node scripts/d1-migrate.ts local",
