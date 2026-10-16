@@ -43,3 +43,17 @@ test("generateObject rejects output that does not match the schema", async () =>
     z.ZodError,
   );
 });
+
+test("generateObject passes content parts such as images through as the user message", async () => {
+  send.mockResolvedValue({
+    choices: [{ message: { role: "assistant", content: '{"title":"Cup","tags":[]}' } }],
+  });
+  const content = [
+    { type: "text" as const, text: "Name this image" },
+    { type: "image_url" as const, imageUrl: { url: "data:image/png;base64,iVBORw0KGgo=" } },
+  ];
+
+  await createLlm({ apiKey: "key" }).generateObject(content, schema);
+
+  expect(send.mock.lastCall?.[0].chatRequest.messages).toEqual([{ role: "user", content }]);
+});

@@ -1,5 +1,5 @@
 import { OpenRouter } from "@openrouter/sdk";
-import type { ChatResult } from "@openrouter/sdk/models";
+import type { ChatResult, ChatUserMessage } from "@openrouter/sdk/models";
 import * as z from "zod";
 
 const MODEL = "google/gemini-3.8-flash";
@@ -8,7 +8,10 @@ export function createLlm(options: { apiKey: string }) {
   const client = new OpenRouter({ apiKey: options.apiKey });
 
   return {
-    async generateObject<T extends z.ZodType>(prompt: string, schema: T): Promise<z.infer<T>> {
+    async generateObject<T extends z.ZodType>(
+      prompt: ChatUserMessage["content"],
+      schema: T,
+    ): Promise<z.infer<T>> {
       // `stream: false` always yields a ChatResult, but the SDK overload still returns the stream union.
       const result = (await client.chat.send({
         chatRequest: {

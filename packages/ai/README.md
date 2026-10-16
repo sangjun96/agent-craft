@@ -15,6 +15,14 @@ const post = await llm.generateObject(
   "Cloudflare Workers 소개글 써줘",
   z.object({ title: z.string(), body: z.string() }),
 );
+// 이미지는 content part 배열로 넘긴다.
+const caption = await llm.generateObject(
+  [
+    { type: "text", text: "이미지를 한 문장으로 설명해줘" },
+    { type: "image_url", imageUrl: { url: "data:image/png;base64,..." } },
+  ],
+  z.object({ caption: z.string() }),
+);
 
 // gemini-3.8-flash-tts 멀티 스피커. 턴 순서대로 하나의 MP3로 합성.
 const speech = createSpeech({ apiKey: env.OPENROUTER_API_KEY });
