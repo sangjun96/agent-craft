@@ -1,12 +1,9 @@
-import { useState } from "react";
 import {
   ArrowRightIcon,
   InfoIcon,
   LogOutIcon,
-  MoonIcon,
   PlusIcon,
   SettingsIcon,
-  SunIcon,
   TriangleAlertIcon,
   UserIcon,
 } from "lucide-react";
@@ -57,7 +54,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Prose, Typography } from "@/components/typography";
-import { useApiStatus } from "./api-status.ts";
 
 const COLOR_TOKENS = [
   "background",
@@ -81,56 +77,15 @@ const MODELS = [
   { label: "Claude Haiku", value: "haiku" },
 ];
 
-export function DemoPage() {
+export function DesignSystemPage() {
   return (
-    <div className="min-h-svh">
-      <Header />
-      <main className="mx-auto flex max-w-5xl flex-col gap-16 px-4 py-12 sm:px-6">
-        <Hero />
-        <ColorsSection />
-        <TypographySection />
-        <ComponentsSection />
-      </main>
-    </div>
+    <main className="mx-auto flex max-w-5xl flex-col gap-16 px-4 py-12 sm:px-6">
+      <Hero />
+      <ColorsSection />
+      <TypographySection />
+      <ComponentsSection />
+    </main>
   );
-}
-
-function Header() {
-  const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
-  const toggleTheme = () => {
-    document.documentElement.classList.toggle("dark", !dark);
-    setDark(!dark);
-  };
-
-  return (
-    <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
-        <Typography variant="large" render={<span />}>
-          agent-craft
-        </Typography>
-        <div className="flex items-center gap-2">
-          <ApiStatusBadge />
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="테마 전환" />
-              }
-            >
-              {dark ? <SunIcon /> : <MoonIcon />}
-            </TooltipTrigger>
-            <TooltipContent>{dark ? "라이트 모드" : "다크 모드"}</TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
-    </header>
-  );
-}
-
-function ApiStatusBadge() {
-  const status = useApiStatus();
-  if (status.state === "connecting") return <Badge variant="outline">API 연결 중…</Badge>;
-  if (status.state === "failed") return <Badge variant="destructive">API 실패</Badge>;
-  return <Badge variant="secondary">API: {status.message}</Badge>;
 }
 
 function Hero() {

@@ -18,7 +18,8 @@
     "lucide-react": "catalog:",
     "pretendard": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "react-router": "catalog:"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "catalog:",
