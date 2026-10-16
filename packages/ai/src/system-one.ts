@@ -4,6 +4,7 @@ import type {
   DecisionsNoulAnswer,
   DecisionsNoulQuestion,
   DecisionsRequest,
+  DecisionsResponseUsage,
   DecisionsScoreAnswer,
   DecisionsScoreQuestion,
 } from "@openrouter/sdk/models";
@@ -31,7 +32,11 @@ export type Question =
 
 export type Answer = DecisionsChoiceAnswer | DecisionsNoulAnswer | DecisionsScoreAnswer | BoxAnswer;
 
-export function createSystemOne(options: { apiKey: string }) {
+export function createSystemOne(options: {
+  apiKey: string;
+  /** Called with token counts and cost after each successful request. */
+  onUsage?: (usage: DecisionsResponseUsage) => void;
+}) {
   return {
     /** Asks Jev the typed questions about `state`; answers come back keyed by question id. */
     async decide(
@@ -51,7 +56,15 @@ export function createSystemOne(options: { apiKey: string }) {
       if (!response.ok) {
         throw new Error(`Decisions request failed (${response.status}): ${await response.text()}`);
       }
-      const { answers } = (await response.json()) as { answers: Record<string, Answer> };
+      const { answers, usage } = (await response.json()) as {
+        answers: Record<string, Answer>;
+        usage: { input_tokens: number; output_tokens: number; cost?: number };
+      };
+      options.onUsage?.({
+        inputTokens: usage.input_tokens,
+        outputTokens: usage.output_tokens,
+        cost: usage.cost,
+      });
       return answers;
     },
   };

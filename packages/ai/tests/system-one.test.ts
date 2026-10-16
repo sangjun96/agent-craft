@@ -32,6 +32,18 @@ test("decide sends image state and box questions to jev-latest and returns the a
   expect(result).toEqual(answers);
 });
 
+test("decide reports the raw snake_case usage as camelCase through onUsage", async () => {
+  const usage = { input_tokens: 1200, output_tokens: 40, cost: 0.0004 };
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ answers: {}, usage })));
+  const onUsage = vi.fn();
+
+  await createSystemOne({ apiKey: "key", onUsage }).decide("x", {
+    q: { type: "noul", instructions: "?" },
+  });
+
+  expect(onUsage).toHaveBeenCalledWith({ inputTokens: 1200, outputTokens: 40, cost: 0.0004 });
+});
+
 test("decide throws with the status and body when the request fails", async () => {
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("bad image", { status: 400 })));
 
