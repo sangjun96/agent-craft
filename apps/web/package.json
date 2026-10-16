@@ -13,7 +13,7 @@
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.64.0",
     "@cloudflare/workers-types": "^5.20261006.1",
-    "typescript": "^7.0.2",
+    "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plus": "catalog:",
     "wrangler": "^4.151.0"
