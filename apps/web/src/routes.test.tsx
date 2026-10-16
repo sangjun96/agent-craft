@@ -1,5 +1,6 @@
 import { matchRoutes } from "react-router";
 import { expect, test } from "vite-plus/test";
+import { AgentDetailPage } from "./pages/agent-detail-page.tsx";
 import { DesignSystemPage } from "./pages/design-system-page.tsx";
 import { HomePage } from "./pages/home-page.tsx";
 import { NotFoundPage } from "./pages/not-found-page.tsx";
@@ -11,6 +12,7 @@ function pageAt(pathname: string) {
 
 test.each([
   ["/", HomePage],
+  ["/agent/bbox-agent", AgentDetailPage],
   ["/design-system", DesignSystemPage],
   ["/no-such-page", NotFoundPage],
 ])("%s renders its page inside the layout", (pathname, page) => {

@@ -1,0 +1,16 @@
+import type { Usage } from "../../worker/agents/types.ts";
+
+const tokens = new Intl.NumberFormat("ko-KR");
+const dateTime = new Intl.DateTimeFormat("ko-KR", { dateStyle: "short", timeStyle: "medium" });
+
+export function formatUsage(usage: Usage): string {
+  return `입력 ${tokens.format(usage.inputTokens)} · 출력 ${tokens.format(usage.outputTokens)} 토큰 · ${formatCost(usage.cost)}`;
+}
+
+export function formatCost(cost: number): string {
+  return `$${cost.toFixed(6)}`;
+}
+
+export function formatTime(timestamp: number): string {
+  return dateTime.format(timestamp);
+}
