@@ -23,7 +23,7 @@ const mp3 = await speech.dialogue([
   { voice: "Puck", text: "그럭저럭.", instructions: "tired, yawning" },
 ]);
 
-// jev-latest(System One). state에 대한 타입 지정 질문(noul/choice/score)에 질문 id별로 답한다.
+// ~typesafe/jev-latest(Decisions API). state에 대한 타입 지정 질문(noul/choice/score/box)에 질문 id별로 답한다.
 const systemOne = createSystemOne({ apiKey: env.OPENROUTER_API_KEY });
 const answers = await systemOne.decide("지금 당장 구매하세요!!!", {
   spam: { type: "noul", instructions: "스팸 메시지인가?" },
@@ -33,6 +33,15 @@ const answers = await systemOne.decide("지금 당장 구매하세요!!!", {
     criteria: ["차분함", "보통", "공격적"],
   },
 });
+
+// 이미지는 PNG/JPEG base64 data URL만. box는 대상이 없어도 박스를 돌려주므로 noul로 존재 여부를 같이 묻는다.
+const photo = await systemOne.decide(
+  ["상품 사진:", { type: "image_url", image_url: { url: "data:image/jpeg;base64,..." } }],
+  {
+    present: { type: "noul", instructions: "사진에 상품이 보이는가?" },
+    product: { type: "box", instructions: "상품 사진 속의 상품" },
+  },
+);
 
 const search = createSearch({ apiKey: env.EXA_API_KEY });
 const results = await search.search({

@@ -1,20 +1,57 @@
-import { OpenRouter } from "@openrouter/sdk";
-import type { DecisionsRequest, DecisionsResponse } from "@openrouter/sdk/models";
+import type {
+  DecisionsChoiceAnswer,
+  DecisionsChoiceQuestion,
+  DecisionsNoulAnswer,
+  DecisionsNoulQuestion,
+  DecisionsRequest,
+  DecisionsScoreAnswer,
+  DecisionsScoreQuestion,
+} from "@openrouter/sdk/models";
 
-const MODEL = "jev-latest";
+const MODEL = "~typesafe/jev-latest";
+
+/** An image anywhere in `state`. Jev takes PNG/JPEG base64 data URLs only (`data:image/png;base64,...`). */
+export type ImagePart = { type: "image_url"; image_url: { url: string } };
+
+/** Locates a described target in an image. Always returns a box, so pair it with a noul question to check presence. */
+export type BoxQuestion = { type: "box"; instructions: DecisionsNoulQuestion["instructions"] };
+
+/** Edges as fractions of the image width (left/right) and height (top/bottom), from the top-left corner. */
+export type BoxAnswer = {
+  type: "box";
+  box: { top: number; bottom: number; left: number; right: number };
+  confidence?: number;
+};
+
+export type Question =
+  | DecisionsChoiceQuestion
+  | DecisionsNoulQuestion
+  | DecisionsScoreQuestion
+  | BoxQuestion;
+
+export type Answer = DecisionsChoiceAnswer | DecisionsNoulAnswer | DecisionsScoreAnswer | BoxAnswer;
 
 export function createSystemOne(options: { apiKey: string }) {
-  const client = new OpenRouter({ apiKey: options.apiKey });
-
   return {
     /** Asks Jev the typed questions about `state`; answers come back keyed by question id. */
     async decide(
       state: DecisionsRequest["state"],
-      questions: DecisionsRequest["questions"],
-    ): Promise<DecisionsResponse["answers"]> {
-      const { answers } = await client.systemOne.create({
-        decisionsRequest: { model: MODEL, state, questions },
+      questions: Record<string, Question>,
+    ): Promise<Record<string, Answer>> {
+      // The SDK's request validation predates box questions, and image input is only documented for the Decisions API.
+      const response = await fetch("https://openrouter.ai/api/alpha/decisions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${options.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ model: MODEL, state, questions }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Decisions request failed (${response.status}): ${await response.text()}`);
+      }
+      const { answers } = (await response.json()) as { answers: Record<string, Answer> };
       return answers;
     },
   };
