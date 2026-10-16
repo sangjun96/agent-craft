@@ -7,6 +7,7 @@ import * as z from "zod";
 import { createLlm } from "ai-services/llm";
 import { createSearch } from "ai-services/search";
 import { createSpeech } from "ai-services/speech";
+import { createSystemOne } from "ai-services/system-one";
 
 // gemini-3.8-flash + reasoning medium 고정. 반환값은 schema로 검증된 타입.
 const llm = createLlm({ apiKey: env.OPENROUTER_API_KEY });
@@ -21,6 +22,17 @@ const mp3 = await speech.dialogue([
   { voice: "Kore", text: "오늘 어때?" },
   { voice: "Puck", text: "그럭저럭.", instructions: "tired, yawning" },
 ]);
+
+// jev-latest(System One). state에 대한 타입 지정 질문(noul/choice/score)에 질문 id별로 답한다.
+const systemOne = createSystemOne({ apiKey: env.OPENROUTER_API_KEY });
+const answers = await systemOne.decide("지금 당장 구매하세요!!!", {
+  spam: { type: "noul", instructions: "스팸 메시지인가?" },
+  tone: {
+    type: "score",
+    instructions: "얼마나 공격적인가?",
+    criteria: ["차분함", "보통", "공격적"],
+  },
+});
 
 const search = createSearch({ apiKey: env.EXA_API_KEY });
 const results = await search.search({
