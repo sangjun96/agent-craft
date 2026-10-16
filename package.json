@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "ready": "vp check && vp run -r test && vp run -r build",
-    "dev": "vp run website#dev",
+    "dev": "vp run web#dev",
+    "deploy": "vp run web#deploy",
     "prepare": "vp config"
   },
   "devDependencies": {
@@ -19,6 +20,6 @@
     }
   },
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=24.0.0"
   }
 }
