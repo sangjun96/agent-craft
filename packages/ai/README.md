@@ -4,11 +4,19 @@ Worker에서 쓰는 AI 서비스 클라이언트. 호출부는 provider 이름 �
 
 ```ts
 import { createLlm } from "ai-services/llm";
+import { createSearch } from "ai-services/search";
 
 const llm = createLlm({ apiKey: env.OPENROUTER_API_KEY });
 const { text } = await llm.chat({
   model: "openai/gpt-5",
   messages: [{ role: "user", content: "Hi" }],
+});
+
+const search = createSearch({ apiKey: env.EXA_API_KEY });
+const results = await search.search({
+  query: "cloudflare workers",
+  numResults: 5,
+  highlights: true,
 });
 ```
 

@@ -9,6 +9,7 @@ catalog:
   "@cloudflare/vite-plugin": 2.0.0-beta.sha-67fa336fd
   "@openrouter/sdk": ^1.4.25
   "@types/node": ^24
+  exa-js: ^2.25.0
   typescript: ^7.0.2
   vite: npm:@voidzero-dev/vite-plus-core@1.2.0
   vite-plus: 1.2.0
