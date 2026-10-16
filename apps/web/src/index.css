@@ -46,6 +46,12 @@
   --red-400: oklch(0.704 0.191 22.216);
   --red-600: oklch(0.577 0.245 27.325);
 
+  /* Syntax highlighting only */
+  --green-300: oklch(0.871 0.15 154.449);
+  --green-700: oklch(0.527 0.154 150.069);
+  --amber-300: oklch(0.879 0.169 91.605);
+  --amber-700: oklch(0.555 0.163 48.998);
+
   --radius: 0.625rem;
 }
 
@@ -85,6 +91,13 @@
   --sidebar-accent-foreground: var(--blue-700);
   --sidebar-border: var(--gray-200);
   --sidebar-ring: var(--blue-500);
+
+  --syntax-comment: var(--gray-500);
+  --syntax-keyword: var(--blue-600);
+  --syntax-string: var(--green-700);
+  --syntax-number: var(--red-600);
+  --syntax-title: var(--amber-700);
+  --syntax-variable: var(--gray-700);
 }
 
 /* 2) Semantic — dark */
@@ -123,6 +136,13 @@
   --sidebar-accent-foreground: var(--blue-100);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: var(--blue-500);
+
+  --syntax-comment: var(--gray-400);
+  --syntax-keyword: var(--blue-300);
+  --syntax-string: var(--green-300);
+  --syntax-number: var(--red-400);
+  --syntax-title: var(--amber-300);
+  --syntax-variable: var(--gray-300);
 }
 
 /* 3) Tailwind theme mapping */
@@ -196,6 +216,59 @@
   --tw-prose-pre-bg: var(--color-muted);
   --tw-prose-th-borders: var(--color-border);
   --tw-prose-td-borders: var(--color-border);
+}
+
+/*
+ * Code highlighting — colors the highlight.js tokens (`hljs-*`) that the editor's
+ * CodeBlock emits. The block itself (background, font) comes from `prose`.
+ */
+@layer components {
+  .hljs-comment,
+  .hljs-quote,
+  .hljs-meta {
+    color: var(--syntax-comment);
+    font-style: italic;
+  }
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-type,
+  .hljs-doctag,
+  .hljs-template-tag {
+    color: var(--syntax-keyword);
+  }
+  .hljs-string,
+  .hljs-regexp,
+  .hljs-addition {
+    color: var(--syntax-string);
+  }
+  .hljs-number,
+  .hljs-literal,
+  .hljs-symbol,
+  .hljs-bullet,
+  .hljs-deletion {
+    color: var(--syntax-number);
+  }
+  .hljs-title,
+  .hljs-section {
+    color: var(--syntax-title);
+  }
+  .hljs-attr,
+  .hljs-attribute,
+  .hljs-property,
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-built_in,
+  .hljs-name,
+  .hljs-selector-class,
+  .hljs-selector-id {
+    color: var(--syntax-variable);
+  }
+  .hljs-emphasis {
+    font-style: italic;
+  }
+  .hljs-strong {
+    font-weight: 600;
+  }
 }
 
 @layer base {
