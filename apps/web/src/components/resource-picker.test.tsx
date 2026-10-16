@@ -42,6 +42,14 @@ describe("ResourcePicker", () => {
     expect(html).toContain('src="/api/resources/abc/file"');
   });
 
+  test("shows the name, size and upload date next to each thumbnail", () => {
+    state.resources = [{ ...image, size: 2048, createdAt: Date.UTC(2026, 9, 16, 3) }];
+    const html = render();
+    expect(html).toContain(">빨간-머그컵.jpg</span>");
+    expect(html).toContain("2.0 KB");
+    expect(html).toContain("26. 10. 16.");
+  });
+
   test("links to the resources page when nothing is stored", () => {
     state.resources = [];
     expect(render()).toContain('href="/resources"');
