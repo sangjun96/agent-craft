@@ -9,7 +9,7 @@ import type {
   DecisionsScoreQuestion,
 } from "@openrouter/sdk/models";
 
-const MODEL = "openai/gpt-6-luna-decisions";
+const MODEL = "typesafe/jev-1.14";
 
 /** An image anywhere in `state`. Jev takes PNG/JPEG base64 data URLs only (`data:image/png;base64,...`). */
 export type ImagePart = { type: "image_url"; image_url: { url: string } };
