@@ -2,6 +2,7 @@ import "./style.css";
 import heroImg from "./assets/hero.png";
 import typescriptLogo from "./assets/typescript.svg";
 import viteLogo from "./assets/vite.svg";
+import { setupApiStatus } from "./api-status.ts";
 import { setupCounter } from "./counter.ts";
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
@@ -16,6 +17,7 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
     <p>Edit <code>src/main.ts</code> and save to test <code>HMR</code></p>
   </div>
   <button id="counter" type="button" class="counter"></button>
+  <p><code id="api-status"></code></p>
 </section>
 
 <div class="ticks"></div>
@@ -58,3 +60,4 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 `;
 
 setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
+void setupApiStatus(document.querySelector<HTMLElement>("#api-status")!);
