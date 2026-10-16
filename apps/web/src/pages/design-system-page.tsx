@@ -1,9 +1,17 @@
+import { type Editor, Tiptap, useRichEditor, useTiptap, useTiptapState } from "editor";
+import { CodeBlock } from "editor/extensions/code-block";
+import { Markdown } from "editor/extensions/markdown";
+import { RichRenderer } from "editor/renderer";
 import {
   ArrowRightIcon,
+  BoldIcon,
+  Heading2Icon,
   InfoIcon,
+  ItalicIcon,
   LogOutIcon,
   PlusIcon,
   SettingsIcon,
+  SquareCodeIcon,
   TriangleAlertIcon,
   UserIcon,
 } from "lucide-react";
@@ -53,7 +61,8 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Prose, Typography } from "@/components/typography";
+import { Prose, proseVariants, Typography } from "@/components/typography";
+import { cn } from "@/lib/utils";
 
 const COLOR_TOKENS = [
   "background",
@@ -77,12 +86,52 @@ const MODELS = [
   { label: "Claude Haiku", value: "haiku" },
 ];
 
+const EDITOR_SAMPLE = `## 실험 노트
+
+**bbox-agent** 프롬프트를 바꿔서 *박스 정확도*를 비교했다.
+
+\`\`\`ts
+const answers = await systemOne.decide(photo, {
+  product: { type: "box", instructions: "상품 사진 속의 상품" },
+});
+\`\`\`
+
+- 툴바나 마크다운 단축키(\`**굵게**\`, \`## 제목\`, \`- 목록\`)로 편집해 보세요.`;
+
+const EDITOR_TOOLS = [
+  {
+    label: "굵게",
+    icon: BoldIcon,
+    isActive: (editor: Editor) => editor.isActive("bold"),
+    toggle: (editor: Editor) => editor.chain().focus().toggleBold().run(),
+  },
+  {
+    label: "기울임",
+    icon: ItalicIcon,
+    isActive: (editor: Editor) => editor.isActive("italic"),
+    toggle: (editor: Editor) => editor.chain().focus().toggleItalic().run(),
+  },
+  {
+    label: "제목",
+    icon: Heading2Icon,
+    isActive: (editor: Editor) => editor.isActive("heading", { level: 2 }),
+    toggle: (editor: Editor) => editor.chain().focus().toggleHeading({ level: 2 }).run(),
+  },
+  {
+    label: "코드 블록",
+    icon: SquareCodeIcon,
+    isActive: (editor: Editor) => editor.isActive("codeBlock"),
+    toggle: (editor: Editor) => editor.chain().focus().toggleCodeBlock().run(),
+  },
+];
+
 export function DesignSystemPage() {
   return (
     <main className="mx-auto flex max-w-5xl flex-col gap-16 px-4 py-12 sm:px-6">
       <Hero />
       <ColorsSection />
       <TypographySection />
+      <EditorSection />
       <ComponentsSection />
     </main>
   );
@@ -249,6 +298,70 @@ function TypographySection() {
       </Tabs>
     </Section>
   );
+}
+
+const EDITOR_EXTENSIONS = [CodeBlock, Markdown];
+const EDITOR_PROSE = proseVariants({ size: "sm" });
+
+function EditorSection() {
+  const editor = useRichEditor({
+    extensions: EDITOR_EXTENSIONS,
+    content: EDITOR_SAMPLE,
+    contentType: "markdown",
+    className: cn(EDITOR_PROSE, "min-h-64 px-4 py-3 outline-none"),
+  });
+
+  return (
+    <Section
+      title="Editor"
+      description="editor 패키지(Tiptap). prose는 className으로 주입하고, CodeBlock · Markdown extension을 조합했습니다. 오른쪽은 같은 extension으로 그린 RichRenderer입니다."
+    >
+      <Tiptap editor={editor}>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Card className="gap-0 py-0">
+            <EditorToolbar />
+            <Tiptap.Content />
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>RichRenderer</CardTitle>
+              <CardDescription>editor.getJSON()을 에디터 인스턴스 없이 렌더링</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <RenderedOutput />
+            </CardContent>
+          </Card>
+        </div>
+      </Tiptap>
+    </Section>
+  );
+}
+
+function EditorToolbar() {
+  const { editor } = useTiptap();
+  const active = useTiptapState(({ editor }) => EDITOR_TOOLS.map((tool) => tool.isActive(editor)));
+
+  return (
+    <div role="toolbar" aria-label="서식" className="flex gap-1 border-b p-1">
+      {EDITOR_TOOLS.map((tool, index) => (
+        <Button
+          key={tool.label}
+          size="icon-sm"
+          variant={active[index] ? "secondary" : "ghost"}
+          aria-label={tool.label}
+          aria-pressed={active[index]}
+          onClick={() => tool.toggle(editor)}
+        >
+          <tool.icon />
+        </Button>
+      ))}
+    </div>
+  );
+}
+
+function RenderedOutput() {
+  const content = useTiptapState(({ editor }) => editor.getJSON());
+  return <RichRenderer content={content} extensions={EDITOR_EXTENSIONS} className={EDITOR_PROSE} />;
 }
 
 function ComponentsSection() {

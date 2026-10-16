@@ -22,6 +22,7 @@
     "class-variance-authority": "catalog:",
     "cn": "catalog:",
     "drizzle-orm": "catalog:",
+    "editor": "workspace:*",
     "hono": "catalog:",
     "lucide-react": "catalog:",
     "pretendard": "catalog:",
