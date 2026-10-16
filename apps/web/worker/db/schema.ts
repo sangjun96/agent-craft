@@ -1,4 +1,5 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import type { BboxResult, CurriculumRun, RunStatus, Usage } from "../agents/types.ts";
 
 /** Uploaded images and CSVs: metadata here, bytes in R2 under resources/{id}. */
 export const resources = sqliteTable("resources", {
@@ -13,4 +14,28 @@ export const resources = sqliteTable("resources", {
   shapeHash: text("shape_hash"),
   /** Epoch milliseconds. */
   createdAt: integer("created_at").notNull(),
+});
+
+/** Runs of BboxAgent. */
+export const bboxRuns = sqliteTable("bbox_runs", {
+  id: text().primaryKey(),
+  status: text().$type<RunStatus>().notNull(),
+  target: text().notNull(),
+  image: text().notNull(),
+  createdAt: integer("created_at").notNull(),
+  finishedAt: integer("finished_at"),
+  result: text({ mode: "json" }).$type<BboxResult>(),
+  usage: text({ mode: "json" }).$type<Usage>(),
+  error: text(),
+});
+
+/** Runs of CurriculumClassifierAgent. */
+export const curriculumRuns = sqliteTable("curriculum_runs", {
+  id: text().primaryKey(),
+  status: text().$type<RunStatus>().notNull(),
+  label: text().notNull(),
+  createdAt: integer("created_at").notNull(),
+  finishedAt: integer("finished_at"),
+  result: text({ mode: "json" }).$type<Pick<CurriculumRun, "extract" | "questions">>(),
+  error: text(),
 });

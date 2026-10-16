@@ -1,29 +1,16 @@
 import { callable } from "agents";
 import { createSystemOne, type ImagePart } from "ai-services/system-one";
+import { desc, eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/d1";
+import { bboxRuns } from "../../db/schema.ts";
 import { DashboardAgent } from "../dashboard-agent.ts";
 import { buildQuestions, toResult, validateImage } from "./bbox.ts";
-import type {
-  AgentStatusState,
-  BboxResult,
-  BboxRun,
-  RunStatus,
-  RunSummary,
-  Usage,
-} from "../types.ts";
+import type { AgentStatusState, BboxResult, BboxRun, RunSummary, Usage } from "../types.ts";
 
 const RECENT_RUNS = 10;
 
-type RunRow = {
-  id: string;
-  status: RunStatus;
-  target: string;
-  image: string;
-  created_at: number;
-  finished_at: number | null;
-  result: string | null;
-  usage: string | null;
-  error: string | null;
-};
+type RunRow = typeof bboxRuns.$inferSelect;
+type SummaryRow = Omit<RunRow, "image" | "result">;
 
 type Outcome = { status: "done" | "error"; result?: BboxResult; usage?: Usage; error?: string };
 
@@ -36,21 +23,14 @@ export class BboxAgent extends DashboardAgent {
     recentRuns: [],
   };
 
-  onStart() {
-    this.sql`CREATE TABLE IF NOT EXISTS runs (
-      id TEXT PRIMARY KEY,
-      status TEXT NOT NULL,
-      target TEXT NOT NULL,
-      image TEXT NOT NULL,
-      created_at INTEGER NOT NULL,
-      finished_at INTEGER,
-      result TEXT,
-      usage TEXT,
-      error TEXT
-    )`;
+  async onStart() {
     // A run still marked running after a restart was cut off by eviction and will never finish.
-    for (const { id } of this.sql<{ id: string }>`SELECT id FROM runs WHERE status = 'running'`) {
-      this.finish(id, { status: "error", error: "실행이 중단되었습니다" });
+    const interrupted = await drizzle(this.env.DB)
+      .select({ id: bboxRuns.id })
+      .from(bboxRuns)
+      .where(eq(bboxRuns.status, "running"));
+    for (const { id } of interrupted) {
+      await this.finish(id, { status: "error", error: "실행이 중단되었습니다" });
     }
   }
 
@@ -62,8 +42,13 @@ export class BboxAgent extends DashboardAgent {
 
     const id = crypto.randomUUID();
     const createdAt = Date.now();
-    this.sql`INSERT INTO runs (id, status, target, image, created_at)
-      VALUES (${id}, 'running', ${target}, ${input.image}, ${createdAt})`;
+    await drizzle(this.env.DB).insert(bboxRuns).values({
+      id,
+      status: "running",
+      target,
+      image: input.image,
+      createdAt,
+    });
     const summary: RunSummary = { id, status: "running", label: target, createdAt };
     this.setState({
       ...this.state,
@@ -86,9 +71,9 @@ export class BboxAgent extends DashboardAgent {
       const answers = await this.keepAliveWhile(() =>
         systemOne.decide([`Find ${target} in this image:`, image], buildQuestions(target)),
       );
-      this.finish(id, { status: "done", result: toResult(answers), usage });
+      await this.finish(id, { status: "done", result: toResult(answers), usage });
     } catch (error) {
-      this.finish(id, {
+      await this.finish(id, {
         status: "error",
         usage,
         error: error instanceof Error ? error.message : String(error),
@@ -98,27 +83,42 @@ export class BboxAgent extends DashboardAgent {
   }
 
   @callable()
-  getRun(id: string): BboxRun | null {
-    const [row] = this.sql<RunRow>`SELECT * FROM runs WHERE id = ${id}`;
+  async getRun(id: string): Promise<BboxRun | null> {
+    const row = await drizzle(this.env.DB).select().from(bboxRuns).where(eq(bboxRuns.id, id)).get();
     return row ? toRun(row) : null;
   }
 
   /** Newest first, without images. */
   @callable()
-  listRuns(limit = 50): RunSummary[] {
-    return this.sql<RunRow>`SELECT id, status, target, created_at, finished_at, usage, error
-      FROM runs ORDER BY created_at DESC LIMIT ${limit}`.map(toSummary);
+  async listRuns(limit = 50): Promise<RunSummary[]> {
+    const rows = await drizzle(this.env.DB)
+      .select({
+        id: bboxRuns.id,
+        status: bboxRuns.status,
+        target: bboxRuns.target,
+        createdAt: bboxRuns.createdAt,
+        finishedAt: bboxRuns.finishedAt,
+        usage: bboxRuns.usage,
+        error: bboxRuns.error,
+      })
+      .from(bboxRuns)
+      .orderBy(desc(bboxRuns.createdAt))
+      .limit(limit);
+    return rows.map(toSummary);
   }
 
-  private finish(id: string, outcome: Outcome) {
+  private async finish(id: string, outcome: Outcome) {
     const finishedAt = Date.now();
-    this.sql`UPDATE runs SET
-      status = ${outcome.status},
-      finished_at = ${finishedAt},
-      result = ${outcome.result ? JSON.stringify(outcome.result) : null},
-      usage = ${outcome.usage ? JSON.stringify(outcome.usage) : null},
-      error = ${outcome.error ?? null}
-      WHERE id = ${id}`;
+    await drizzle(this.env.DB)
+      .update(bboxRuns)
+      .set({
+        status: outcome.status,
+        finishedAt,
+        result: outcome.result ?? null,
+        usage: outcome.usage ?? null,
+        error: outcome.error ?? null,
+      })
+      .where(eq(bboxRuns.id, id));
 
     const total = this.state.usage;
     const usage = outcome.usage;
@@ -142,14 +142,14 @@ export class BboxAgent extends DashboardAgent {
   }
 }
 
-function toSummary(row: RunRow): RunSummary {
+function toSummary(row: SummaryRow): RunSummary {
   return {
     id: row.id,
     status: row.status,
     label: row.target,
-    createdAt: row.created_at,
-    finishedAt: row.finished_at ?? undefined,
-    usage: row.usage ? (JSON.parse(row.usage) as Usage) : undefined,
+    createdAt: row.createdAt,
+    finishedAt: row.finishedAt ?? undefined,
+    usage: row.usage ?? undefined,
     error: row.error ?? undefined,
   };
 }
@@ -159,6 +159,6 @@ function toRun(row: RunRow): BboxRun {
     ...toSummary(row),
     target: row.target,
     image: row.image,
-    result: row.result ? (JSON.parse(row.result) as BboxResult) : undefined,
+    result: row.result ?? undefined,
   };
 }

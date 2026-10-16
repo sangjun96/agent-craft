@@ -1,7 +1,10 @@
 import { callable } from "agents";
 import { createLlm } from "ai-services/llm";
 import { createSystemOne, type ImagePart } from "ai-services/system-one";
+import { desc, eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/d1";
 import * as z from "zod";
+import { curriculumRuns } from "../../db/schema.ts";
 import { assertCsvShape, parseCsvRecords } from "../../resources/csv.ts";
 import { validateImage } from "../bbox/bbox.ts";
 import { DashboardAgent } from "../dashboard-agent.ts";
@@ -9,7 +12,6 @@ import type {
   AgentStatusState,
   CurriculumRun,
   QuestionTrace,
-  RunStatus,
   RunSummary,
   Step,
   Usage,
@@ -29,15 +31,7 @@ const EXTRACT_PROMPT = `이 수학 시험지 이미지에 있는 모든 문항�
 - 문항이 아닌 번호(쪽수, 보기 번호 ①②③)는 제외`;
 const extractSchema = z.object({ questions: z.array(z.object({ number: z.string() })) });
 
-type RunRow = {
-  id: string;
-  status: RunStatus;
-  label: string;
-  created_at: number;
-  finished_at: number | null;
-  result: string | null;
-  error: string | null;
-};
+type RunRow = typeof curriculumRuns.$inferSelect;
 
 type Detail = Pick<CurriculumRun, "extract" | "questions">;
 
@@ -50,19 +44,14 @@ export class CurriculumClassifierAgent extends DashboardAgent {
     recentRuns: [],
   };
 
-  onStart() {
-    this.sql`CREATE TABLE IF NOT EXISTS runs (
-      id TEXT PRIMARY KEY,
-      status TEXT NOT NULL,
-      label TEXT NOT NULL,
-      created_at INTEGER NOT NULL,
-      finished_at INTEGER,
-      result TEXT,
-      error TEXT
-    )`;
+  async onStart() {
     // A run still marked running after a restart was cut off by eviction and will never finish.
-    for (const { id } of this.sql<{ id: string }>`SELECT id FROM runs WHERE status = 'running'`) {
-      this.finish(id, "error", "실행이 중단되었습니다");
+    const interrupted = await drizzle(this.env.DB)
+      .select({ id: curriculumRuns.id })
+      .from(curriculumRuns)
+      .where(eq(curriculumRuns.status, "running"));
+    for (const { id } of interrupted) {
+      await this.finish(id, "error", "실행이 중단되었습니다");
     }
   }
 
@@ -78,8 +67,12 @@ export class CurriculumClassifierAgent extends DashboardAgent {
     const id = crypto.randomUUID();
     const createdAt = Date.now();
     const label = "시험지 분석 중";
-    this
-      .sql`INSERT INTO runs (id, status, label, created_at) VALUES (${id}, 'running', ${label}, ${createdAt})`;
+    await drizzle(this.env.DB).insert(curriculumRuns).values({
+      id,
+      status: "running",
+      label,
+      createdAt,
+    });
     const live: CurriculumRun = {
       id,
       status: "running",
@@ -103,17 +96,24 @@ export class CurriculumClassifierAgent extends DashboardAgent {
   }
 
   @callable()
-  getRun(id: string): CurriculumRun | null {
-    const [row] = this.sql<RunRow>`SELECT * FROM runs WHERE id = ${id}`;
+  async getRun(id: string): Promise<CurriculumRun | null> {
+    const row = await drizzle(this.env.DB)
+      .select()
+      .from(curriculumRuns)
+      .where(eq(curriculumRuns.id, id))
+      .get();
     return row ? toRun(row) : null;
   }
 
   /** Newest first, without the traces. */
   @callable()
-  listRuns(limit = 50): RunSummary[] {
-    return this.sql<RunRow>`SELECT * FROM runs ORDER BY created_at DESC LIMIT ${limit}`.map((row) =>
-      summarize(toRun(row)),
-    );
+  async listRuns(limit = 50): Promise<RunSummary[]> {
+    const rows = await drizzle(this.env.DB)
+      .select()
+      .from(curriculumRuns)
+      .orderBy(desc(curriculumRuns.createdAt))
+      .limit(limit);
+    return rows.map((row) => summarize(toRun(row)));
   }
 
   private async process(id: string, imageUrl: string, tree: CurriculumNode) {
@@ -127,9 +127,9 @@ export class CurriculumClassifierAgent extends DashboardAgent {
       }));
 
       await mapPool(numbers, QUESTION_CONCURRENCY, (number) => this.classify(tree, number, image));
-      this.finish(id, "done");
+      await this.finish(id, "done");
     } catch (error) {
-      this.finish(id, "error", error instanceof Error ? error.message : String(error));
+      await this.finish(id, "error", error instanceof Error ? error.message : String(error));
     }
   }
 
@@ -225,18 +225,21 @@ export class CurriculumClassifierAgent extends DashboardAgent {
     });
   }
 
-  private finish(id: string, status: "done" | "error", error?: string) {
+  private async finish(id: string, status: "done" | "error", error?: string) {
     const finishedAt = Date.now();
     const live = this.state.live?.id === id ? this.state.live : undefined;
     const detail: Detail | undefined = live && { extract: live.extract, questions: live.questions };
     const usage = live ? runUsage(live) : undefined;
-    this.sql`UPDATE runs SET
-      status = ${status},
-      label = ${live?.label ?? "문항 분류"},
-      finished_at = ${finishedAt},
-      result = ${detail ? JSON.stringify(detail) : null},
-      error = ${error ?? null}
-      WHERE id = ${id}`;
+    await drizzle(this.env.DB)
+      .update(curriculumRuns)
+      .set({
+        status,
+        label: live?.label ?? "문항 분류",
+        finishedAt,
+        result: detail ?? null,
+        error: error ?? null,
+      })
+      .where(eq(curriculumRuns.id, id));
 
     const total = this.state.usage;
     const finished: CurriculumRun | undefined = live && {
@@ -282,15 +285,13 @@ function summarize({
 }
 
 function toRun(row: RunRow): CurriculumRun {
-  const detail: Detail = row.result
-    ? (JSON.parse(row.result) as Detail)
-    : { extract: { status: row.status }, questions: [] };
+  const detail: Detail = row.result ?? { extract: { status: row.status }, questions: [] };
   const run: CurriculumRun = {
     id: row.id,
     status: row.status,
     label: row.label,
-    createdAt: row.created_at,
-    finishedAt: row.finished_at ?? undefined,
+    createdAt: row.createdAt,
+    finishedAt: row.finishedAt ?? undefined,
     error: row.error ?? undefined,
     ...detail,
   };
