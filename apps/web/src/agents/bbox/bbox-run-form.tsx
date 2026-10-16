@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { ImageUpload } from "@/components/image-upload";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,13 +35,7 @@ export function BboxRunForm({ agent, onSubmitted }: RunFormProps) {
     <form onSubmit={submit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label htmlFor="bbox-image">이미지</Label>
-        <Input
-          id="bbox-image"
-          type="file"
-          accept="image/*"
-          required
-          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-        />
+        <ImageUpload id="bbox-image" value={file} onChange={setFile} disabled={busy} />
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="bbox-target">찾을 대상</Label>
