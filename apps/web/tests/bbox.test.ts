@@ -1,5 +1,5 @@
 import { expect, test } from "vite-plus/test";
-import { buildQuestions, toResult, validateImage } from "../worker/agents/bbox.ts";
+import { buildQuestions, toResult, validateImage } from "../worker/agents/bbox/bbox.ts";
 
 test("buildQuestions asks for presence and a box around the target", () => {
   expect(buildQuestions("the red mug")).toEqual({

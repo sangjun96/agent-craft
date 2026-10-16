@@ -1,4 +1,4 @@
-import type { BboxAgent } from "./agents/bbox-agent.ts";
+import type { BboxAgent } from "./agents/bbox/bbox-agent.ts";
 
 export interface Env {
   BboxAgent: DurableObjectNamespace<BboxAgent>;

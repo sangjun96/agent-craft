@@ -1,6 +1,6 @@
 import { Agent, callable } from "agents";
 import { createSystemOne, type ImagePart } from "ai-services/system-one";
-import type { Env } from "../env.ts";
+import type { Env } from "../../env.ts";
 import { buildQuestions, toResult, validateImage } from "./bbox.ts";
 import type {
   AgentStatusState,
@@ -9,7 +9,7 @@ import type {
   RunStatus,
   RunSummary,
   Usage,
-} from "./types.ts";
+} from "../types.ts";
 
 const RECENT_RUNS = 10;
 

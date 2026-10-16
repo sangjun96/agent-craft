@@ -1,5 +1,5 @@
 import type { Answer, Question } from "ai-services/system-one";
-import type { BboxResult } from "./types.ts";
+import type { BboxResult } from "../types.ts";
 
 // Durable Object SQLite caps a single value at 2 MB.
 const MAX_IMAGE_LENGTH = 1_500_000;
