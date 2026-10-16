@@ -1,5 +1,11 @@
+import { routeAgentRequest } from "agents";
+import { handleApi } from "./api.ts";
+import type { Env } from "./env.ts";
+
+export { BboxAgent } from "./agents/bbox-agent.ts";
+
 export default {
-  fetch(request) {
-    return new Response(`Hello from ${new URL(request.url).pathname}`);
+  async fetch(request, env) {
+    return (await routeAgentRequest(request, env)) ?? handleApi(request);
   },
-} satisfies ExportedHandler;
+} satisfies ExportedHandler<Env>;

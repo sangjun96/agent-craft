@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
+    "agents": "catalog:",
     "ai-services": "workspace:*",
     "class-variance-authority": "catalog:",
     "cn": "catalog:",
@@ -22,6 +23,7 @@
     "react-router": "catalog:"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "catalog:",
     "@cloudflare/vite-plugin": "catalog:",
     "@cloudflare/workers-types": "^5.20261006.1",
     "@tailwindcss/typography": "catalog:",

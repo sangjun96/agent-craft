@@ -6,6 +6,7 @@ packages:
 catalogMode: prefer
 
 catalog:
+  "@babel/plugin-proposal-decorators": ^8.0.2
   "@base-ui/react": ^1.9.0
   "@cloudflare/vite-plugin": 2.0.0-beta.sha-67fa336fd
   "@openrouter/sdk": ^1.4.25
@@ -15,6 +16,7 @@ catalog:
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0
   "@vitejs/plugin-react": ^6.1.2
+  agents: ^0.28.1
   class-variance-authority: ^0.7.1
   cn: ^0.4.0
   exa-js: ^2.25.0
@@ -39,5 +41,6 @@ peerDependencyRules:
     vite: "*"
 allowBuilds:
   "@openrouter/sdk": false
+  core-js-pure: false
   esbuild: true
   workerd: true

@@ -3,10 +3,18 @@ export default {
   worker: {
     name: "web",
     compatibilityDate: "2026-10-16",
+    compatibilityFlags: ["nodejs_compat"],
     entrypoint: "./worker/index.ts",
     assets: {
       notFoundHandling: "single-page-application",
-      runWorkerFirst: ["/api/*"],
+      runWorkerFirst: ["/api/*", "/agents/*"],
+    },
+    exports: {
+      BboxAgent: { type: "durable-object", storage: "sqlite" },
+    },
+    env: {
+      BboxAgent: { type: "durable-object", worker: "web", exportName: "BboxAgent" },
+      OPENROUTER_API_KEY: { type: "secret" },
     },
   },
 };
