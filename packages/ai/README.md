@@ -31,7 +31,7 @@ const mp3 = await speech.dialogue([
   { voice: "Puck", text: "그럭저럭.", instructions: "tired, yawning" },
 ]);
 
-// ~typesafe/jev-latest(Decisions API). state에 대한 타입 지정 질문(noul/choice/score/box)에 질문 id별로 답한다.
+// Decisions API. state에 대한 타입 지정 질문(noul/choice/score/box)에 질문 id별로 답한다.
 const systemOne = createSystemOne({ apiKey: env.OPENROUTER_API_KEY });
 const answers = await systemOne.decide("지금 당장 구매하세요!!!", {
   spam: { type: "noul", instructions: "스팸 메시지인가?" },

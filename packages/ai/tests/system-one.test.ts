@@ -5,12 +5,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-test("decide sends image state and box questions to jev-latest and returns the answers", async () => {
+test("decide sends image state and box questions to the Decisions API and returns the answers", async () => {
   const answers = {
     present: { type: "noul", noul: 0.97 },
     product: { type: "box", box: { top: 0.49, bottom: 0.89, left: 0.58, right: 0.96 } },
   };
-  const fetch = vi.fn().mockResolvedValue(Response.json({ answers, model: "typesafe/jev-1.14" }));
+  const fetch = vi.fn().mockResolvedValue(Response.json({ answers }));
   vi.stubGlobal("fetch", fetch);
 
   const image: ImagePart = {
@@ -27,8 +27,9 @@ test("decide sends image state and box questions to jev-latest and returns the a
   expect(fetch).toHaveBeenCalledWith("https://openrouter.ai/api/alpha/decisions", {
     method: "POST",
     headers: { Authorization: "Bearer key", "Content-Type": "application/json" },
-    body: JSON.stringify({ model: "~typesafe/jev-latest", state, questions }),
+    body: expect.any(String),
   });
+  expect(JSON.parse(fetch.mock.calls[0][1].body)).toMatchObject({ state, questions });
   expect(result).toEqual(answers);
 });
 
