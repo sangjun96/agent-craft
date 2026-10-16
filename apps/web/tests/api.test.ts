@@ -1,9 +1,9 @@
 import { expect, test } from "vite-plus/test";
 import { api } from "../worker/api.ts";
 
-test("api responds with the request path for unknown GET routes", async () => {
+test("api returns 404 for unknown GET routes", async () => {
   const response = await api.request("/hello");
-  expect(await response.text()).toBe("Hello from /hello");
+  expect(response.status).toBe(404);
 });
 
 test("api returns 404 for unsupported methods on a resource", async () => {

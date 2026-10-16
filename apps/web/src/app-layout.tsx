@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { MoonIcon, SunIcon } from "lucide-react";
 import { NavLink, Outlet } from "react-router";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Typography } from "@/components/typography";
 import { cn } from "@/lib/utils";
-import { useApiStatus } from "./api-status.ts";
 
 const NAV_ITEMS = [
   { to: "/", label: "홈" },
@@ -56,7 +54,6 @@ function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <ApiStatusBadge />
           <Tooltip>
             <TooltipTrigger
               render={
@@ -71,11 +68,4 @@ function Header() {
       </div>
     </header>
   );
-}
-
-function ApiStatusBadge() {
-  const status = useApiStatus();
-  if (status.state === "connecting") return <Badge variant="outline">API 연결 중…</Badge>;
-  if (status.state === "failed") return <Badge variant="destructive">API 실패</Badge>;
-  return <Badge variant="secondary">API: {status.message}</Badge>;
 }
