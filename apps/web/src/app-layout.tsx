@@ -10,6 +10,7 @@ import { useApiStatus } from "./api-status.ts";
 
 const NAV_ITEMS = [
   { to: "/", label: "홈" },
+  { to: "/resources", label: "리소스" },
   { to: "/design-system", label: "디자인 시스템" },
 ];
 

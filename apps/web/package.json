@@ -8,7 +8,10 @@
     "build": "tsc -b && vp build",
     "preview": "vp build && vp preview",
     "deploy": "vp build && cf deploy --prebuilt",
-    "test": "vp test"
+    "test": "vp test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "node scripts/d1-migrate.ts local",
+    "db:migrate:remote": "node scripts/d1-migrate.ts remote"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
@@ -16,11 +19,13 @@
     "ai-services": "workspace:*",
     "class-variance-authority": "catalog:",
     "cn": "catalog:",
+    "drizzle-orm": "catalog:",
     "lucide-react": "catalog:",
     "pretendard": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-router": "catalog:"
+    "react-router": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "catalog:",
@@ -31,6 +36,8 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "cf": "catalog:",
+    "drizzle-kit": "catalog:",
     "shadcn": "catalog:",
     "tailwindcss": "catalog:",
     "tw-animate-css": "catalog:",

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { ImageUpload } from "@/components/image-upload";
+import { ResourcePicker } from "@/components/resource-picker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ export function BboxRunForm({ agent, onSubmitted }: RunFormProps) {
       <div className="flex flex-col gap-2">
         <Label htmlFor="bbox-image">이미지</Label>
         <ImageUpload id="bbox-image" value={file} onChange={setFile} disabled={busy} />
+        {!file && <ResourcePicker onSelect={setFile} disabled={busy} />}
       </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="bbox-target">찾을 대상</Label>

@@ -6,6 +6,6 @@ export { BboxAgent } from "./agents/bbox-agent.ts";
 
 export default {
   async fetch(request, env) {
-    return (await routeAgentRequest(request, env)) ?? handleApi(request);
+    return (await routeAgentRequest(request, env)) ?? handleApi(request, env);
   },
 } satisfies ExportedHandler<Env>;
