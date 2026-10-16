@@ -11,7 +11,7 @@ import type {
 
 const MODEL = "typesafe/jev-1.14";
 
-/** An image anywhere in `state`. Jev takes PNG/JPEG base64 data URLs only (`data:image/png;base64,...`). */
+/** An image anywhere in `state`. Decision takes PNG/JPEG base64 data URLs only (`data:image/png;base64,...`). */
 export type ImagePart = { type: "image_url"; image_url: { url: string } };
 
 /** Locates a described target in an image. Always returns a box, so pair it with a noul question to check presence. */
@@ -38,7 +38,7 @@ export function createSystemOne(options: {
   onUsage?: (usage: DecisionsResponseUsage) => void;
 }) {
   return {
-    /** Asks Jev the typed questions about `state`; answers come back keyed by question id. */
+    /** Asks Decision the typed questions about `state`; answers come back keyed by question id. */
     async decide(
       state: DecisionsRequest["state"],
       questions: Record<string, Question>,

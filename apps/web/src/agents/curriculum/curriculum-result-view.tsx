@@ -14,7 +14,7 @@ export function CurriculumResultView({ agent, runId }: ResultViewProps) {
   const now = useNow(running);
   if (!run) return <p className="text-sm text-muted-foreground">불러오는 중…</p>;
 
-  const { llm, jev, total } = summarizeRun(run, now);
+  const { llm, decision, total } = summarizeRun(run, now);
   return (
     <div className="flex flex-col gap-4">
       <table className="w-full text-sm">
@@ -28,7 +28,7 @@ export function CurriculumResultView({ agent, runId }: ResultViewProps) {
         </thead>
         <tbody className="tabular-nums">
           <Row label="일반 LLM · 문항 추출" part={llm} />
-          <Row label={`Jev · 분류 (${jev.calls}회 호출)`} part={jev} />
+          <Row label={`Decision · 분류 (${decision.calls}회 호출)`} part={decision} />
           <Row label="합계" part={total} bold />
         </tbody>
       </table>

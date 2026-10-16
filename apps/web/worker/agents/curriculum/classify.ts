@@ -10,7 +10,7 @@ export type Decide = (
 
 type BeamItem = { node: CurriculumNode; path: string[]; score: number };
 
-/** The best option alone when it reaches the threshold; otherwise the best MAX_BRANCHES options, as Jev is unsure. */
+/** The best option alone when it reaches the threshold; otherwise the best MAX_BRANCHES options, as Decision is unsure. */
 export function selectBranches(options: StepOption[]): string[] {
   const ranked = options
     .map(({ name, probability }) => ({ name, probability: probability ?? 0 }))
@@ -113,7 +113,7 @@ async function ask(params: {
       },
     );
     const answer = answers.choice;
-    if (answer?.type !== "choice") throw new Error("Jev가 choice 답변을 반환하지 않았습니다");
+    if (answer?.type !== "choice") throw new Error("Decision이 choice 답변을 반환하지 않았습니다");
 
     const probabilities = answer.probabilities ?? { [answer.choice]: answer.confidence ?? 1 };
     step.options = names.map((name) => ({ name, probability: probabilities[name] ?? 0 }));

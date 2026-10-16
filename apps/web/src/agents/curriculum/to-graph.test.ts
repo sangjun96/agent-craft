@@ -36,7 +36,7 @@ test("buildGraph lays levels out in columns", () => {
   expect(new Set(xs).size).toBe(xs.length);
 });
 
-test("buildGraph shows offered options as pending while Jev has not answered", () => {
+test("buildGraph shows offered options as pending while Decision has not answered", () => {
   const running: CurriculumRun = {
     ...finishedRun,
     status: "running",

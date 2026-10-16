@@ -41,7 +41,7 @@ type RunRow = {
 
 type Detail = Pick<CurriculumRun, "extract" | "questions">;
 
-/** Classifies each question of an exam image into the curriculum hierarchy with System One (Jev). */
+/** Classifies each question of an exam image into the curriculum hierarchy with System One (Decision). */
 export class CurriculumClassifierAgent extends Agent<Env, AgentStatusState> {
   initialState: AgentStatusState = {
     status: "idle",

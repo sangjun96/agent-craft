@@ -21,7 +21,7 @@ export const AGENTS: AgentDefinition[] = [
   {
     slug: "bbox-agent",
     title: "System One BBox",
-    description: "이미지에서 설명한 대상을 System One(Jev)으로 찾아 bbox로 표시합니다.",
+    description: "이미지에서 설명한 대상을 System One(Decision)으로 찾아 bbox로 표시합니다.",
     RunForm: BboxRunForm,
     ResultView: BboxResultView,
   },
@@ -29,7 +29,7 @@ export const AGENTS: AgentDefinition[] = [
     slug: "curriculum-classifier-agent",
     title: "수학 커리큘럼 분류",
     description:
-      "시험지 이미지의 문항을 System One(Jev)으로 대단원부터 세부유형까지 단계적으로 분류합니다.",
+      "시험지 이미지의 문항을 System One(Decision)으로 대단원부터 세부유형까지 단계적으로 분류합니다.",
     RunForm: CurriculumRunForm,
     ResultView: CurriculumResultView,
   },

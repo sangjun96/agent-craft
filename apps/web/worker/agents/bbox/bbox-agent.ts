@@ -27,7 +27,7 @@ type RunRow = {
 
 type Outcome = { status: "done" | "error"; result?: BboxResult; usage?: Usage; error?: string };
 
-/** Finds a described target in an image with System One (Jev) and keeps a history of runs. */
+/** Finds a described target in an image with System One (Decision) and keeps a history of runs. */
 export class BboxAgent extends Agent<Env, AgentStatusState> {
   initialState: AgentStatusState = {
     status: "idle",

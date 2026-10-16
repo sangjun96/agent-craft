@@ -20,13 +20,13 @@ export function llmUsage(run: Pick<CurriculumRun, "extract">): Usage {
   return sumUsage([run.extract.usage]);
 }
 
-/** Jev's share: every classification step of every question. */
-export function jevUsage(run: Pick<CurriculumRun, "questions">): Usage {
+/** Decision's share: every classification step of every question. */
+export function decisionUsage(run: Pick<CurriculumRun, "questions">): Usage {
   return sumUsage(run.questions.map(questionUsage));
 }
 
-/** Jev requests made so far; automatic steps ask nothing. */
-export function jevCalls(run: Pick<CurriculumRun, "questions">): number {
+/** Decision requests made so far; automatic steps ask nothing. */
+export function decisionCalls(run: Pick<CurriculumRun, "questions">): number {
   return run.questions.reduce(
     (count, question) => count + question.steps.filter((step) => step.usage).length,
     0,
@@ -35,5 +35,5 @@ export function jevCalls(run: Pick<CurriculumRun, "questions">): number {
 
 /** Extraction plus every classification step of every question. */
 export function runUsage(run: Pick<CurriculumRun, "extract" | "questions">): Usage {
-  return sumUsage([llmUsage(run), jevUsage(run)]);
+  return sumUsage([llmUsage(run), decisionUsage(run)]);
 }

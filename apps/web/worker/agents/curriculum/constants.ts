@@ -6,7 +6,7 @@ export const CONFIDENCE_THRESHOLD = 0.7;
 /** Most branches kept alive per level for one question (beam width). */
 export const MAX_BRANCHES = 2;
 
-/** Questions classified at the same time; bounds in-flight Jev requests. */
+/** Questions classified at the same time; bounds in-flight Decision requests. */
 export const QUESTION_CONCURRENCY = 5;
 
 /** Curriculum hierarchy, top to bottom; also the column order of the curriculum CSV. */

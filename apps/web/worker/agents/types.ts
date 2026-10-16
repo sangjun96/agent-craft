@@ -37,7 +37,7 @@ export type BboxResult = {
 
 export type BboxRun = RunSummary & { target: string; image: string; result?: BboxResult };
 
-/** One option of a curriculum choice; the probability is unknown until Jev has answered. */
+/** One option of a curriculum choice; the probability is unknown until Decision has answered. */
 export type StepOption = { name: string; probability?: number };
 
 /** One choice question about a curriculum level, or an automatic step when only one option exists. */

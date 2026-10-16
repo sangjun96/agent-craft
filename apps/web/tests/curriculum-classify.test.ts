@@ -114,7 +114,7 @@ test("classifyQuestion skips the model when a level has a single option", async 
   expect(steps.every((step) => step.auto)).toBe(true);
 });
 
-test("classifyQuestion takes only the best option at each level when Jev is confident", async () => {
+test("classifyQuestion takes only the best option at each level when Decision is confident", async () => {
   const { decide, calls } = answering(0.9, 0.1);
 
   const result = await classifyQuestion({
