@@ -6,6 +6,7 @@
   "exports": {
     "./llm": "./src/llm.ts",
     "./search": "./src/search.ts",
+    "./speech": "./src/speech.ts",
     "./package.json": "./package.json"
   },
   "scripts": {

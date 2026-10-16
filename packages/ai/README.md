@@ -6,6 +6,7 @@ Worker에서 쓰는 AI 서비스 클라이언트. 호출부는 provider 이름 �
 import * as z from "zod";
 import { createLlm } from "ai-services/llm";
 import { createSearch } from "ai-services/search";
+import { createSpeech } from "ai-services/speech";
 
 // gemini-3.8-flash + reasoning medium 고정. 반환값은 schema로 검증된 타입.
 const llm = createLlm({ apiKey: env.OPENROUTER_API_KEY });
@@ -13,6 +14,13 @@ const post = await llm.generateObject(
   "Cloudflare Workers 소개글 써줘",
   z.object({ title: z.string(), body: z.string() }),
 );
+
+// gemini-3.8-flash-tts 멀티 스피커. 턴 순서대로 하나의 MP3로 합성.
+const speech = createSpeech({ apiKey: env.OPENROUTER_API_KEY });
+const mp3 = await speech.dialogue([
+  { voice: "Kore", text: "오늘 어때?" },
+  { voice: "Puck", text: "그럭저럭.", instructions: "tired, yawning" },
+]);
 
 const search = createSearch({ apiKey: env.EXA_API_KEY });
 const results = await search.search({
