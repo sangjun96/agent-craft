@@ -1,4 +1,5 @@
 import { expect, test, vi } from "vite-plus/test";
+import * as z from "zod";
 import { createLlm } from "../src/llm.ts";
 
 const send = vi.fn();
@@ -9,52 +10,36 @@ vi.mock("@openrouter/sdk", () => ({
   },
 }));
 
-test("chat maps request and response", async () => {
+const schema = z.object({ title: z.string(), tags: z.array(z.string()) });
+
+test("generateObject sends the schema and returns the parsed object", async () => {
   send.mockResolvedValue({
-    model: "openai/gpt-5",
-    choices: [{ message: { role: "assistant", content: "Hi!" } }],
-    usage: { promptTokens: 3, completionTokens: 2 },
+    choices: [{ message: { role: "assistant", content: '{"title":"Hi","tags":["a"]}' } }],
   });
 
-  const result = await createLlm({ apiKey: "key" }).chat({
-    model: "openai/gpt-5",
-    messages: [{ role: "user", content: "Hello" }],
-    maxTokens: 100,
-  });
+  const result = await createLlm({ apiKey: "key" }).generateObject("Make a post", schema);
 
   expect(send).toHaveBeenCalledWith({
     chatRequest: {
-      model: "openai/gpt-5",
-      messages: [{ role: "user", content: "Hello" }],
-      temperature: undefined,
-      maxTokens: 100,
+      model: "google/gemini-3.8-flash",
+      messages: [{ role: "user", content: "Make a post" }],
+      reasoning: { effort: "medium" },
+      responseFormat: {
+        type: "json_schema",
+        jsonSchema: { name: "output", schema: z.toJSONSchema(schema), strict: true },
+      },
       stream: false,
     },
   });
-  expect(result).toEqual({
-    text: "Hi!",
-    model: "openai/gpt-5",
-    usage: { inputTokens: 3, outputTokens: 2 },
-  });
+  expect(result).toEqual({ title: "Hi", tags: ["a"] });
 });
 
-test("chat joins text parts when content is an array", async () => {
+test("generateObject rejects output that does not match the schema", async () => {
   send.mockResolvedValue({
-    model: "m",
-    choices: [
-      {
-        message: {
-          role: "assistant",
-          content: [
-            { type: "text", text: "a" },
-            { type: "text", text: "b" },
-          ],
-        },
-      },
-    ],
+    choices: [{ message: { role: "assistant", content: '{"title":1}' } }],
   });
 
-  const result = await createLlm({ apiKey: "key" }).chat({ model: "m", messages: [] });
-
-  expect(result.text).toBe("ab");
+  await expect(createLlm({ apiKey: "key" }).generateObject("x", schema)).rejects.toThrow(
+    z.ZodError,
+  );
 });

@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@openrouter/sdk": "catalog:",
-    "exa-js": "catalog:"
+    "exa-js": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",

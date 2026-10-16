@@ -3,14 +3,16 @@
 Worker에서 쓰는 AI 서비스 클라이언트. 호출부는 provider 이름 대신 범용 이름(`llm`, `search`, ...)으로 사용한다.
 
 ```ts
+import * as z from "zod";
 import { createLlm } from "ai-services/llm";
 import { createSearch } from "ai-services/search";
 
+// gemini-3.8-flash + reasoning medium 고정. 반환값은 schema로 검증된 타입.
 const llm = createLlm({ apiKey: env.OPENROUTER_API_KEY });
-const { text } = await llm.chat({
-  model: "openai/gpt-5",
-  messages: [{ role: "user", content: "Hi" }],
-});
+const post = await llm.generateObject(
+  "Cloudflare Workers 소개글 써줘",
+  z.object({ title: z.string(), body: z.string() }),
+);
 
 const search = createSearch({ apiKey: env.EXA_API_KEY });
 const results = await search.search({
