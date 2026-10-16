@@ -1,46 +1,47 @@
+import { hc } from "hono/client";
+import type { api } from "../../worker/api.ts";
 import type { Resource } from "../../worker/resources/types.ts";
 
 export type { Resource };
+
+const client = hc<typeof api>("/api").resources;
 
 export function resourceFileUrl(id: string): string {
   return `/api/resources/${id}/file`;
 }
 
-export function listResources(signal?: AbortSignal): Promise<Resource[]> {
-  return request("/api/resources", { signal });
+export async function listResources(): Promise<Resource[]> {
+  const response = await client.$get();
+  if (!response.ok) throw await toError(response);
+  return response.json();
 }
 
 /** Stores the image; the worker names it with the LLM before responding. */
-export function uploadResource(file: File): Promise<Resource> {
-  const body = new FormData();
-  body.append("file", file);
-  return request("/api/resources", { method: "POST", body });
+export async function uploadResource(file: File): Promise<Resource> {
+  const response = await client.$post({ form: { file } });
+  if (!response.ok) throw await toError(response);
+  return response.json();
 }
 
-export function renameResource(id: string, name: string): Promise<Resource> {
-  return request(`/api/resources/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
-  });
+export async function renameResource(id: string, name: string): Promise<Resource> {
+  const response = await client[":id"].$patch({ param: { id }, json: { name } });
+  if (!response.ok) throw await toError(response);
+  return response.json();
 }
 
 export async function deleteResource(id: string): Promise<void> {
-  await request(`/api/resources/${id}`, { method: "DELETE" });
+  const response = await client[":id"].$delete({ param: { id } });
+  if (!response.ok) throw await toError(response);
 }
 
 /** Downloads the stored image as a File, ready for forms that take an upload. */
 export async function fetchResourceFile(resource: Resource): Promise<File> {
-  const response = await fetch(resourceFileUrl(resource.id));
+  const response = await client[":id"].file.$get({ param: { id: resource.id } });
   if (!response.ok) throw new Error(`이미지를 불러오지 못했습니다 (HTTP ${response.status})`);
   return new File([await response.blob()], resource.name, { type: resource.contentType });
 }
 
-async function request<T>(url: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(url, init);
-  if (!response.ok) {
-    const body = (await response.json().catch(() => undefined)) as { error?: string } | undefined;
-    throw new Error(body?.error ?? `HTTP ${response.status}`);
-  }
-  return (response.status === 204 ? undefined : await response.json()) as T;
+async function toError(response: Response): Promise<Error> {
+  const body = (await response.json().catch(() => undefined)) as { error?: string } | undefined;
+  return new Error(body?.error ?? `HTTP ${response.status}`);
 }

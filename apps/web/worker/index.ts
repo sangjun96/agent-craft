@@ -1,11 +1,14 @@
 import { routeAgentRequest } from "agents";
-import { handleApi } from "./api.ts";
+import { Hono } from "hono";
+import { api } from "./api.ts";
 import type { Env } from "./env.ts";
 
 export { BboxAgent } from "./agents/bbox/bbox-agent.ts";
 
-export default {
-  async fetch(request, env) {
-    return (await routeAgentRequest(request, env)) ?? handleApi(request, env);
-  },
-} satisfies ExportedHandler<Env>;
+const app = new Hono<{ Bindings: Env }>();
+
+// Return the agent response untouched; wrapping it would break WebSocket upgrades.
+app.all("/agents/*", async (c) => (await routeAgentRequest(c.req.raw, c.env)) ?? c.notFound());
+app.route("/api", api);
+
+export default app;

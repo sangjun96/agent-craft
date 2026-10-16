@@ -1,9 +1,7 @@
+import { Hono } from "hono";
 import type { Env } from "./env.ts";
-import { handleResources } from "./resources/api.ts";
+import { resources } from "./resources/api.ts";
 
-export async function handleApi(request: Request, env: Env): Promise<Response> {
-  return (
-    (await handleResources(request, env)) ??
-    new Response(`Hello from ${new URL(request.url).pathname}`)
-  );
-}
+export const api = new Hono<{ Bindings: Env }>()
+  .route("/resources", resources)
+  .get("*", (c) => c.text(`Hello from ${new URL(c.req.url).pathname}`));
