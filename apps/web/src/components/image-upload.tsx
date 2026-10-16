@@ -1,5 +1,5 @@
 import { useEffect, useState, type DragEvent } from "react";
-import { ImageUpIcon, XIcon } from "lucide-react";
+import { FileSpreadsheetIcon, ImageUpIcon, XIcon } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 
@@ -7,21 +7,33 @@ type ImageUploadProps = {
   id?: string;
   value: File | null;
   onChange: (file: File | null) => void;
+  /** Also accepts CSV files, shown with an icon instead of a preview. */
+  allowCsv?: boolean;
   disabled?: boolean;
   className?: string;
 };
 
 /** Image picker with click or drag-and-drop, showing a preview once a file is chosen. */
-export function ImageUpload({ id, value, onChange, disabled, className }: ImageUploadProps) {
+export function ImageUpload({
+  id,
+  value,
+  onChange,
+  allowCsv,
+  disabled,
+  className,
+}: ImageUploadProps) {
   const [dragging, setDragging] = useState(false);
-  const preview = useObjectUrl(value);
+  const isImage = value?.type.startsWith("image/");
+  const preview = useObjectUrl(isImage ? value : null);
 
   const drop = (event: DragEvent) => {
     event.preventDefault();
     setDragging(false);
     if (disabled) return;
     const file = event.dataTransfer.files[0];
-    if (file?.type.startsWith("image/")) onChange(file);
+    if (file && (file.type.startsWith("image/") || (allowCsv && /\.csv$/i.test(file.name)))) {
+      onChange(file);
+    }
   };
 
   if (value) {
@@ -31,7 +43,15 @@ export function ImageUpload({ id, value, onChange, disabled, className }: ImageU
         className={cn("flex items-center gap-3 rounded-lg border p-2", className)}
       >
         <div className="size-14 shrink-0 overflow-hidden rounded-md bg-muted">
-          {preview && <img src={preview} alt="" className="size-full object-cover" />}
+          {preview ? (
+            <img src={preview} alt="" className="size-full object-cover" />
+          ) : (
+            !isImage && (
+              <div className="flex size-full items-center justify-center">
+                <FileSpreadsheetIcon className="size-5 text-muted-foreground" />
+              </div>
+            )
+          )}
         </div>
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-sm font-medium">{value.name}</span>
@@ -41,7 +61,7 @@ export function ImageUpload({ id, value, onChange, disabled, className }: ImageU
           type="button"
           variant="ghost"
           size="icon-sm"
-          aria-label="이미지 제거"
+          aria-label={allowCsv ? "파일 제거" : "이미지 제거"}
           disabled={disabled}
           onClick={() => onChange(null)}
         >
@@ -71,13 +91,17 @@ export function ImageUpload({ id, value, onChange, disabled, className }: ImageU
         <ImageUpIcon className="size-5 text-muted-foreground" />
       </div>
       <div className="flex flex-col gap-0.5">
-        <span className="text-sm font-medium">클릭하거나 이미지를 끌어다 놓으세요</span>
-        <span className="text-xs text-muted-foreground">PNG, JPG, WEBP 등 이미지 파일</span>
+        <span className="text-sm font-medium">
+          {allowCsv ? "클릭하거나 파일을 끌어다 놓으세요" : "클릭하거나 이미지를 끌어다 놓으세요"}
+        </span>
+        <span className="text-xs text-muted-foreground">
+          {allowCsv ? "PNG, JPG, WEBP 등 이미지 또는 CSV 파일" : "PNG, JPG, WEBP 등 이미지 파일"}
+        </span>
       </div>
       <input
         id={id}
         type="file"
-        accept="image/*"
+        accept={allowCsv ? "image/*,.csv,text/csv" : "image/*"}
         className="sr-only"
         disabled={disabled}
         onChange={(event) => {

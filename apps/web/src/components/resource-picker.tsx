@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LoaderCircleIcon } from "lucide-react";
+import { FileSpreadsheetIcon, LoaderCircleIcon } from "lucide-react";
 import { Link } from "react-router";
 import { cn } from "cn";
 import { fetchResourceFile, resourceFileUrl, type Resource } from "@/resources/api";
@@ -7,13 +7,28 @@ import { useResources } from "@/resources/use-resources";
 
 type ResourcePickerProps = {
   onSelect: (file: File) => void;
+  /** What to offer: images (default) or CSVs. */
+  kind?: "image" | "csv";
+  /** With `kind="csv"`, offers only CSVs whose header hashes to this value. */
+  shapeHash?: string;
   disabled?: boolean;
   className?: string;
 };
 
-/** Loads the images stored on the resources page and hands the picked one over as a File. */
-export function ResourcePicker({ onSelect, disabled, className }: ResourcePickerProps) {
-  const { resources, loading, error } = useResources();
+/** Loads the images or CSVs stored on the resources page and hands the picked one over as a File. */
+export function ResourcePicker({
+  onSelect,
+  kind = "image",
+  shapeHash,
+  disabled,
+  className,
+}: ResourcePickerProps) {
+  const { resources: stored, loading, error } = useResources();
+  const resources = stored.filter((resource) =>
+    kind === "csv"
+      ? resource.shapeHash !== null && (!shapeHash || resource.shapeHash === shapeHash)
+      : resource.shapeHash === null,
+  );
   const [pickingId, setPickingId] = useState<string>();
   const [pickError, setPickError] = useState<string>();
 
@@ -37,7 +52,7 @@ export function ResourcePicker({ onSelect, disabled, className }: ResourcePicker
   } else if (resources.length === 0) {
     body = (
       <p className="text-xs text-muted-foreground">
-        저장된 리소스가 없습니다.{" "}
+        {kind === "csv" ? "맞는 CSV 리소스가 없습니다." : "저장된 리소스가 없습니다."}{" "}
         <Link to="/resources" className="underline underline-offset-4 hover:text-foreground">
           리소스 페이지
         </Link>
@@ -55,14 +70,18 @@ export function ResourcePicker({ onSelect, disabled, className }: ResourcePicker
               aria-label={`${resource.name} 선택`}
               disabled={disabled || pickingId !== undefined}
               onClick={() => pick(resource)}
-              className="relative block size-14 overflow-hidden rounded-md border bg-muted outline-none hover:ring-2 hover:ring-ring/50 focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
+              className="relative flex size-14 items-center justify-center overflow-hidden rounded-md border bg-muted outline-none hover:ring-2 hover:ring-ring/50 focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
             >
-              <img
-                src={resourceFileUrl(resource.id)}
-                alt={resource.name}
-                loading="lazy"
-                className="size-full object-cover"
-              />
+              {kind === "csv" ? (
+                <FileSpreadsheetIcon className="size-5 text-muted-foreground" />
+              ) : (
+                <img
+                  src={resourceFileUrl(resource.id)}
+                  alt={resource.name}
+                  loading="lazy"
+                  className="size-full object-cover"
+                />
+              )}
               {pickingId === resource.id && (
                 <span className="absolute inset-0 flex items-center justify-center bg-background/60">
                   <LoaderCircleIcon className="size-4 animate-spin" />

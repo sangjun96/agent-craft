@@ -16,7 +16,7 @@ export async function listResources(): Promise<Resource[]> {
   return response.json();
 }
 
-/** Stores the image; the worker names it with the LLM before responding. */
+/** Stores the file; the worker names an image with the LLM and a CSV by its file name, and hashes a CSV's header. */
 export async function uploadResource(file: File): Promise<Resource> {
   const response = await client.$post({ form: { file } });
   if (!response.ok) throw await toError(response);
@@ -34,10 +34,10 @@ export async function deleteResource(id: string): Promise<void> {
   if (!response.ok) throw await toError(response);
 }
 
-/** Downloads the stored image as a File, ready for forms that take an upload. */
+/** Downloads the stored file as a File, ready for forms that take an upload. */
 export async function fetchResourceFile(resource: Resource): Promise<File> {
   const response = await client[":id"].file.$get({ param: { id: resource.id } });
-  if (!response.ok) throw new Error(`이미지를 불러오지 못했습니다 (HTTP ${response.status})`);
+  if (!response.ok) throw new Error(`파일을 불러오지 못했습니다 (HTTP ${response.status})`);
   return new File([await response.blob()], resource.name, { type: resource.contentType });
 }
 

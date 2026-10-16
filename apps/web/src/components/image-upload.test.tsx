@@ -18,4 +18,15 @@ describe("ImageUpload", () => {
     expect(html).toContain('aria-label="이미지 제거"');
     expect(html).not.toContain('type="file"');
   });
+
+  test("accepts CSV files too when allowed", () => {
+    const empty = renderToStaticMarkup(
+      <ImageUpload id="file" value={null} onChange={() => {}} allowCsv />,
+    );
+    expect(empty).toContain('accept="image/*,.csv,text/csv"');
+    const file = new File(["id,name"], "data.csv", { type: "text/csv" });
+    const chosen = renderToStaticMarkup(<ImageUpload value={file} onChange={() => {}} allowCsv />);
+    expect(chosen).toContain("data.csv");
+    expect(chosen).toContain('aria-label="파일 제거"');
+  });
 });

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { CheckIcon, PencilIcon, Trash2Icon, XIcon } from "lucide-react";
+import { CheckIcon, FileSpreadsheetIcon, PencilIcon, Trash2Icon, XIcon } from "lucide-react";
 import { formatTime } from "@/agents/format";
 import { formatBytes, ImageUpload } from "@/components/image-upload";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -27,7 +27,8 @@ export function ResourcesPage() {
           리소스
         </Typography>
         <Typography variant="muted">
-          에이전트 실행에 쓸 이미지를 저장합니다. 업로드하면 LLM이 내용을 보고 파일명을 붙입니다.
+          에이전트 실행에 쓸 이미지와 CSV를 저장합니다. 이미지는 LLM이 내용을 보고 파일명을 붙이고,
+          CSV는 헤더로 형상을 구별합니다.
         </Typography>
       </div>
 
@@ -79,16 +80,22 @@ function UploadCard({ onUploaded }: { onUploaded: () => void }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>이미지 업로드</CardTitle>
-        <CardDescription>PNG, JPEG, WEBP, GIF · 최대 10MB</CardDescription>
+        <CardTitle>리소스 업로드</CardTitle>
+        <CardDescription>PNG, JPEG, WEBP, GIF 이미지 또는 CSV · 최대 10MB</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="resource-image" className="sr-only">
-              이미지
+            <Label htmlFor="resource-file" className="sr-only">
+              파일
             </Label>
-            <ImageUpload id="resource-image" value={file} onChange={setFile} disabled={uploading} />
+            <ImageUpload
+              id="resource-file"
+              allowCsv
+              value={file}
+              onChange={setFile}
+              disabled={uploading}
+            />
           </div>
           {error && (
             <Alert variant="destructive">
@@ -96,7 +103,7 @@ function UploadCard({ onUploaded }: { onUploaded: () => void }) {
             </Alert>
           )}
           <Button type="submit" className="self-end" disabled={uploading || !file}>
-            {uploading ? "업로드하고 이름 짓는 중…" : "업로드"}
+            {uploading ? "업로드 중…" : "업로드"}
           </Button>
         </form>
       </CardContent>
@@ -143,12 +150,18 @@ function ResourceCard({ resource, onChanged }: { resource: Resource; onChanged: 
         rel="noreferrer"
         className="block aspect-video overflow-hidden bg-muted"
       >
-        <img
-          src={resourceFileUrl(resource.id)}
-          alt={resource.name}
-          loading="lazy"
-          className="size-full object-contain"
-        />
+        {resource.shapeHash ? (
+          <div className="flex size-full items-center justify-center">
+            <FileSpreadsheetIcon className="size-10 text-muted-foreground" />
+          </div>
+        ) : (
+          <img
+            src={resourceFileUrl(resource.id)}
+            alt={resource.name}
+            loading="lazy"
+            className="size-full object-contain"
+          />
+        )}
       </a>
       <CardContent className="flex flex-col gap-1">
         {editing ? (
@@ -214,6 +227,14 @@ function ResourceCard({ resource, onChanged }: { resource: Resource; onChanged: 
         <span className="text-xs text-muted-foreground">
           {formatBytes(resource.size)} · {formatTime(resource.createdAt)}
         </span>
+        {resource.shapeHash && (
+          <span
+            className="font-mono text-xs text-muted-foreground"
+            title={`헤더 SHA-256: ${resource.shapeHash}`}
+          >
+            형상 {resource.shapeHash.slice(0, 8)}
+          </span>
+        )}
         {error && <span className="text-xs text-destructive">{error}</span>}
       </CardContent>
     </Card>

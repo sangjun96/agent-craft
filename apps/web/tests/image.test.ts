@@ -1,16 +1,10 @@
 import { expect, test } from "vite-plus/test";
-import { toBase64, toFileName, validateUpload } from "../worker/resources/resources.ts";
+import { isImage, toBase64, toFileName } from "../worker/resources/image.ts";
 
-test("validateUpload accepts common image types up to 10MB", () => {
-  expect(validateUpload({ type: "image/png", size: 1024 })).toBeUndefined();
-  expect(validateUpload({ type: "image/webp", size: 10 * 1024 * 1024 })).toBeUndefined();
-});
-
-test("validateUpload rejects other types and oversized files", () => {
-  expect(validateUpload({ type: "application/pdf", size: 1024 })).toContain("이미지만");
-  expect(validateUpload({ type: "image/jpeg", size: 10 * 1024 * 1024 + 1 })).toContain(
-    "너무 큽니다",
-  );
+test("isImage accepts the formats the naming LLM supports", () => {
+  expect(isImage({ type: "image/webp" })).toBe(true);
+  expect(isImage({ type: "image/svg+xml" })).toBe(false);
+  expect(isImage({ type: "text/csv" })).toBe(false);
 });
 
 test("toFileName joins words with dashes and adds the extension for the type", () => {

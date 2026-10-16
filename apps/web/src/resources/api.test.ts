@@ -7,6 +7,7 @@ const resource = {
   originalName: "IMG_0001.jpg",
   contentType: "image/jpeg",
   size: 10,
+  shapeHash: null,
   createdAt: 0,
 };
 
