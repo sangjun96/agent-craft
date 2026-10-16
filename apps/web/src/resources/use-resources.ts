@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import useSWR from "swr";
 import { listResources, type Resource } from "./api.ts";
 
 export type ResourcesState = {
@@ -8,30 +8,15 @@ export type ResourcesState = {
   reload: () => void;
 };
 
-/** Loads the stored resources on mount; call reload after changing them. */
+const RESOURCES_KEY = "/api/resources";
+
+/** Shares one cached list across components; call reload after changing the resources. */
 export function useResources(): ResourcesState {
-  const [resources, setResources] = useState<Resource[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>();
-  const [version, setVersion] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    setLoading(true);
-    listResources(controller.signal)
-      .then((result) => {
-        setResources(result);
-        setError(undefined);
-      })
-      .catch((err: unknown) => {
-        if (!controller.signal.aborted) setError(err instanceof Error ? err.message : String(err));
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-    return () => controller.abort();
-  }, [version]);
-
-  const reload = useCallback(() => setVersion((v) => v + 1), []);
-  return { resources, loading, error, reload };
+  const { data, error, isLoading, mutate } = useSWR(RESOURCES_KEY, () => listResources());
+  return {
+    resources: data ?? [],
+    loading: isLoading,
+    error: error && (error instanceof Error ? error.message : String(error)),
+    reload: () => void mutate(),
+  };
 }

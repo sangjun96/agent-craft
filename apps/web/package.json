@@ -25,6 +25,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "react-router": "catalog:",
+    "swr": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

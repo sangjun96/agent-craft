@@ -1,25 +1,19 @@
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 
 export type ApiStatus =
   | { state: "connecting" }
   | { state: "ok"; message: string }
   | { state: "failed"; error: string };
 
+async function fetchHello(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return response.text();
+}
+
 export function useApiStatus(): ApiStatus {
-  const [status, setStatus] = useState<ApiStatus>({ state: "connecting" });
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch("/api/hello", { signal: controller.signal })
-      .then(async (response) => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        setStatus({ state: "ok", message: await response.text() });
-      })
-      .catch((error: unknown) => {
-        if (!controller.signal.aborted) setStatus({ state: "failed", error: String(error) });
-      });
-    return () => controller.abort();
-  }, []);
-
-  return status;
+  const { data, error } = useSWR("/api/hello", fetchHello);
+  if (data !== undefined) return { state: "ok", message: data };
+  if (error) return { state: "failed", error: String(error) };
+  return { state: "connecting" };
 }
