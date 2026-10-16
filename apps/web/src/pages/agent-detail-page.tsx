@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeftIcon } from "lucide-react";
 import { Link, useParams } from "react-router";
+import { useAccess } from "@/access/use-access";
 import { AGENTS, type AgentDefinition } from "@/agents/catalog";
 import { formatTime } from "@/agents/format";
 import { useDashboardAgent } from "@/agents/use-dashboard-agent";
@@ -21,6 +22,7 @@ export function AgentDetailPage() {
 }
 
 function AgentDetail({ definition }: { definition: AgentDefinition }) {
+  const { canEdit } = useAccess();
   const agent = useDashboardAgent(definition.slug);
   const [runs, setRuns] = useState<RunSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string>();
@@ -56,15 +58,17 @@ function AgentDetail({ definition }: { definition: AgentDefinition }) {
         <Typography variant="muted">{definition.description}</Typography>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>실행</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RunForm agent={agent} onSubmitted={setSelectedId} />
-          </CardContent>
-        </Card>
+      <div className={cn("grid gap-4", canEdit && "md:grid-cols-2")}>
+        {canEdit && (
+          <Card>
+            <CardHeader>
+              <CardTitle>실행</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <RunForm agent={agent} onSubmitted={setSelectedId} />
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>사용량</CardTitle>

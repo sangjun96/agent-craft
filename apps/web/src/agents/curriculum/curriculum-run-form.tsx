@@ -6,6 +6,7 @@ import { ResourcePicker } from "@/components/resource-picker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { runCurriculumAgent } from "../api.ts";
 import type { RunFormProps } from "../catalog.ts";
 
 const MAX_SIDE = 1024;
@@ -23,9 +24,10 @@ export function CurriculumRunForm({ agent, onSubmitted }: RunFormProps) {
     setSubmitting(true);
     setError(undefined);
     try {
-      const runId = await agent.call<string>("run", [
-        { image: await toJpegDataUrl(image), curriculumCsv: await csv.text() },
-      ]);
+      const runId = await runCurriculumAgent({
+        image: await toJpegDataUrl(image),
+        curriculumCsv: await csv.text(),
+      });
       onSubmitted?.(runId);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

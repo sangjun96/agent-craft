@@ -1,10 +1,10 @@
-import { Agent, callable } from "agents";
+import { callable } from "agents";
 import { createLlm } from "ai-services/llm";
 import { createSystemOne, type ImagePart } from "ai-services/system-one";
 import * as z from "zod";
-import type { Env } from "../../env.ts";
 import { assertCsvShape, parseCsvRecords } from "../../resources/csv.ts";
 import { validateImage } from "../bbox/bbox.ts";
+import { DashboardAgent } from "../dashboard-agent.ts";
 import type {
   AgentStatusState,
   CurriculumRun,
@@ -20,7 +20,7 @@ import { buildTree, type CurriculumNode } from "./tree.ts";
 import { runUsage } from "./usage.ts";
 
 const RECENT_RUNS = 10;
-// The CSV travels in an RPC message, so keep it well below the WebSocket frame limit.
+// The CSV travels in an RPC message, so keep it well below the payload limit.
 const MAX_CSV_BYTES = 1_000_000;
 
 const EXTRACT_PROMPT = `이 수학 시험지 이미지에 있는 모든 문항의 번호를 위에서 아래, 왼쪽에서 오른쪽 순서로 추출해줘.
@@ -42,7 +42,7 @@ type RunRow = {
 type Detail = Pick<CurriculumRun, "extract" | "questions">;
 
 /** Classifies each question of an exam image into the curriculum hierarchy with System One (Decision). */
-export class CurriculumClassifierAgent extends Agent<Env, AgentStatusState> {
+export class CurriculumClassifierAgent extends DashboardAgent {
   initialState: AgentStatusState = {
     status: "idle",
     progress: 0,
@@ -67,7 +67,6 @@ export class CurriculumClassifierAgent extends Agent<Env, AgentStatusState> {
   }
 
   /** Validates the input and returns the run id right away; progress streams through `state.live`. */
-  @callable()
   async run(input: { image: string; curriculumCsv: string }): Promise<string> {
     if (this.state.status === "running") throw new Error("이미 실행 중입니다");
     validateImage(input.image);

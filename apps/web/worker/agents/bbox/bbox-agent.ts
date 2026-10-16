@@ -1,6 +1,6 @@
-import { Agent, callable } from "agents";
+import { callable } from "agents";
 import { createSystemOne, type ImagePart } from "ai-services/system-one";
-import type { Env } from "../../env.ts";
+import { DashboardAgent } from "../dashboard-agent.ts";
 import { buildQuestions, toResult, validateImage } from "./bbox.ts";
 import type {
   AgentStatusState,
@@ -28,7 +28,7 @@ type RunRow = {
 type Outcome = { status: "done" | "error"; result?: BboxResult; usage?: Usage; error?: string };
 
 /** Finds a described target in an image with System One (Decision) and keeps a history of runs. */
-export class BboxAgent extends Agent<Env, AgentStatusState> {
+export class BboxAgent extends DashboardAgent {
   initialState: AgentStatusState = {
     status: "idle",
     progress: 0,
@@ -54,7 +54,6 @@ export class BboxAgent extends Agent<Env, AgentStatusState> {
     }
   }
 
-  @callable()
   async run(input: { image: string; target: string }): Promise<string> {
     const target = input.target.trim();
     if (this.state.status === "running") throw new Error("이미 실행 중입니다");

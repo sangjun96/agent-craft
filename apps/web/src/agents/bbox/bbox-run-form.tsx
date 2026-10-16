@@ -5,6 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { runBboxAgent } from "../api.ts";
 import type { RunFormProps } from "../catalog.ts";
 
 const MAX_SIDE = 1024;
@@ -23,7 +24,7 @@ export function BboxRunForm({ agent, onSubmitted }: RunFormProps) {
     setError(undefined);
     try {
       const image = await toJpegDataUrl(file);
-      const runId = await agent.call<string>("run", [{ image, target }]);
+      const runId = await runBboxAgent({ image, target });
       onSubmitted?.(runId);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

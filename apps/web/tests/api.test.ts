@@ -58,3 +58,23 @@ test("POST rejects a CSV without a header row before touching storage", async ()
   expect(response.status).toBe(400);
   expect(await response.json()).toEqual({ error: "CSV 헤더 행이 비어 있습니다" });
 });
+
+test("POST /agents/bbox-agent/run validates required fields before waking the agent", async () => {
+  const response = await api.request("/agents/bbox-agent/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ image: "data:image/jpeg;base64,abc", target: "  " }),
+  });
+  expect(response.status).toBe(400);
+  expect(await response.json()).toEqual({ error: "찾을 대상을 입력하세요" });
+});
+
+test("POST /agents/curriculum-classifier-agent/run validates required fields before waking the agent", async () => {
+  const response = await api.request("/agents/curriculum-classifier-agent/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ image: "data:image/jpeg;base64,abc", curriculumCsv: "" }),
+  });
+  expect(response.status).toBe(400);
+  expect(await response.json()).toEqual({ error: "커리큘럼 CSV를 선택하세요" });
+});

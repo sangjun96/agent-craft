@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { CheckIcon, FileSpreadsheetIcon, PencilIcon, Trash2Icon, XIcon } from "lucide-react";
+import { useAccess } from "@/access/use-access";
 import { formatTime } from "@/agents/format";
 import { formatBytes, ImageUpload } from "@/components/image-upload";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -18,6 +19,7 @@ import {
 import { useResources } from "@/resources/use-resources";
 
 export function ResourcesPage() {
+  const { canEdit } = useAccess();
   const { resources, loading, error, reload } = useResources();
 
   return (
@@ -32,7 +34,7 @@ export function ResourcesPage() {
         </Typography>
       </div>
 
-      <UploadCard onUploaded={reload} />
+      {canEdit && <UploadCard onUploaded={reload} />}
 
       {error && (
         <Alert variant="destructive">
@@ -47,7 +49,7 @@ export function ResourcesPage() {
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {resources.map((resource) => (
             <li key={resource.id}>
-              <ResourceCard resource={resource} onChanged={reload} />
+              <ResourceCard resource={resource} canEdit={canEdit} onChanged={reload} />
             </li>
           ))}
         </ul>
@@ -111,7 +113,15 @@ function UploadCard({ onUploaded }: { onUploaded: () => void }) {
   );
 }
 
-function ResourceCard({ resource, onChanged }: { resource: Resource; onChanged: () => void }) {
+function ResourceCard({
+  resource,
+  canEdit,
+  onChanged,
+}: {
+  resource: Resource;
+  canEdit: boolean;
+  onChanged: () => void;
+}) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(resource.name);
   const [busy, setBusy] = useState(false);
@@ -164,7 +174,7 @@ function ResourceCard({ resource, onChanged }: { resource: Resource; onChanged: 
         )}
       </a>
       <CardContent className="flex flex-col gap-1">
-        {editing ? (
+        {editing && canEdit ? (
           <form onSubmit={rename} className="flex items-center gap-1">
             <Input
               aria-label="이름"
@@ -201,24 +211,28 @@ function ResourceCard({ resource, onChanged }: { resource: Resource; onChanged: 
             <span className="min-w-0 flex-1 truncate text-sm font-medium" title={resource.name}>
               {resource.name}
             </span>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="이름 변경"
-              disabled={busy}
-              onClick={() => setEditing(true)}
-            >
-              <PencilIcon />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="삭제"
-              disabled={busy}
-              onClick={remove}
-            >
-              <Trash2Icon />
-            </Button>
+            {canEdit && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="이름 변경"
+                  disabled={busy}
+                  onClick={() => setEditing(true)}
+                >
+                  <PencilIcon />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="삭제"
+                  disabled={busy}
+                  onClick={remove}
+                >
+                  <Trash2Icon />
+                </Button>
+              </>
+            )}
           </div>
         )}
         <span className="truncate text-xs text-muted-foreground" title={resource.originalName}>

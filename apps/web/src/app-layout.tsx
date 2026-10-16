@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { MenuIcon, MoonIcon, SunIcon } from "lucide-react";
+import { KeyRoundIcon, MenuIcon, MoonIcon, SunIcon } from "lucide-react";
 import { NavLink, Outlet } from "react-router";
+import { useAccess } from "@/access/use-access";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -23,6 +24,7 @@ export function AppLayout() {
 }
 
 function Header() {
+  const { canEdit } = useAccess();
   const [dark, setDark] = useState(() => document.documentElement.classList.contains("dark"));
   const toggleTheme = () => {
     document.documentElement.classList.toggle("dark", !dark);
@@ -39,16 +41,36 @@ function Header() {
           </Typography>
           <NavLinks className="hidden items-center gap-4 text-sm sm:flex" />
         </div>
-        <Tooltip>
-          <TooltipTrigger
-            render={
-              <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="테마 전환" />
-            }
-          >
-            {dark ? <SunIcon /> : <MoonIcon />}
-          </TooltipTrigger>
-          <TooltipContent>{dark ? "라이트 모드" : "다크 모드"}</TooltipContent>
-        </Tooltip>
+        <div className="flex items-center gap-1">
+          {!canEdit && (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    render={<a href="/api/access/login" />}
+                    nativeButton={false}
+                    aria-label="관리자 로그인"
+                  />
+                }
+              >
+                <KeyRoundIcon />
+              </TooltipTrigger>
+              <TooltipContent>관리자 로그인</TooltipContent>
+            </Tooltip>
+          )}
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="테마 전환" />
+              }
+            >
+              {dark ? <SunIcon /> : <MoonIcon />}
+            </TooltipTrigger>
+            <TooltipContent>{dark ? "라이트 모드" : "다크 모드"}</TooltipContent>
+          </Tooltip>
+        </div>
       </div>
     </header>
   );
